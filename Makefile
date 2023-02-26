@@ -28,6 +28,7 @@ CONDA_LOCAL   := $(call shell_variable, conda)
 # venv executables
 PYTHON3 	   := ~/anaconda3/envs/${VENV_NAME}/bin/python3
 PIP3    	   := ~/anaconda3/envs/${VENV_NAME}/bin/pip3
+PYSIDE6_UIC    := ~/anaconda3/envs/${VENV_NAME}/bin/pyside6-uic
 PIP3_notConda  := ./${VENV_NAME}/bin/pip3
 #----------------
 
@@ -47,19 +48,26 @@ check-dependencies:
 	@$(foreach prerequisite, ${prerequisites}, \
 	$(call dependency_checker, ${prerequisite}, ${prerequisite} installation found, ${prerequisite} installation not found))
 
+compile-ui:
+	@$(call info_logger, Converting .ui files to python code)
+	@for file in ./frontend/assets/ui/*.ui ; do \
+  		temp=$$(basename -- "$$file"); \
+        ${PYSIDE6_UIC} $${file} -o ./frontend/"$${temp%.*}".py; \
+    done
+
 freeze-conda-requirements:
-	@$(call info_logger, Preparing python virtual environment)
+	@$(call info_logger, Freezing environment)
 	${PIP3} list --format=freeze >> ${BASE_DIR}/requirements.txt
 	awk -i inplace '!seen[$$0]++' requirements.txt
 
 freeze-pip-requirements:
-	@$(call info_logger, Preparing python virtual environment)
+	@$(call info_logger, Freezing environment)
 	${PIP3_notConda} list --format=freeze >> ${BASE_DIR}/requirements.txt
 	awk -i inplace '!seen[$$0]++' requirements.txt
 
 # syntax: make install-pip-package package="pyQT6"
 install-pip-package:
-	@$(call info_logger, Preparing python virtual environment)
+	@$(call info_logger, Installing pip packages)
 	${PIP3} install --no-cache-dir ${package}
 
 prep-conda-virtual-environment:
@@ -70,7 +78,7 @@ prep-conda-virtual-environment:
 
 app:
 	@$(call info_logger, Starting up the app)
-	${PYTHON3} driver.py
+	${PYTHON3} app.py
 
 # cleanup
 clean-virtualenv: garbage := "~/anaconda3/envs/${VENV_NAME}"
