@@ -15,7 +15,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGraphicsView, QHBoxLayout, QMainWindow,
+from PySide6.QtWidgets import (QApplication, QGridLayout, QHBoxLayout, QMainWindow,
     QMenuBar, QPushButton, QSizePolicy, QStatusBar,
     QVBoxLayout, QWidget)
 
@@ -34,20 +34,13 @@ class Ui_MainWindow(object):
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Canada))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.widget = QWidget(self.centralwidget)
-        self.widget.setObjectName(u"widget")
-        self.widget.setGeometry(QRect(20, 20, 921, 551))
-        self.verticalLayout = QVBoxLayout(self.widget)
+        self.gridLayout = QGridLayout(self.centralwidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.graphicsView = QGraphicsView(self.widget)
-        self.graphicsView.setObjectName(u"graphicsView")
-
-        self.verticalLayout.addWidget(self.graphicsView)
-
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.pushButtonBrute = QPushButton(self.widget)
+        self.pushButtonBrute = QPushButton(self.centralwidget)
         self.pushButtonBrute.setObjectName(u"pushButtonBrute")
         font1 = QFont()
         font1.setFamilies([u"P052"])
@@ -59,7 +52,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.pushButtonBrute)
 
-        self.pushButtonCSP = QPushButton(self.widget)
+        self.pushButtonCSP = QPushButton(self.centralwidget)
         self.pushButtonCSP.setObjectName(u"pushButtonCSP")
         self.pushButtonCSP.setFont(font1)
         self.pushButtonCSP.setLayoutDirection(Qt.LeftToRight)
@@ -74,7 +67,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.pushButtonCSP)
 
-        self.pushButtonBack = QPushButton(self.widget)
+        self.pushButtonBack = QPushButton(self.centralwidget)
         self.pushButtonBack.setObjectName(u"pushButtonBack")
         self.pushButtonBack.setFont(font1)
         self.pushButtonBack.setLayoutDirection(Qt.LeftToRight)
@@ -83,7 +76,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout.addWidget(self.pushButtonBack)
 
-        self.pushButtonExit = QPushButton(self.widget)
+        self.pushButtonExit = QPushButton(self.centralwidget)
         self.pushButtonExit.setObjectName(u"pushButtonExit")
         self.pushButtonExit.setFont(font1)
         self.pushButtonExit.setLayoutDirection(Qt.LeftToRight)
@@ -94,6 +87,9 @@ class Ui_MainWindow(object):
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
+
+
+        self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)

@@ -1,5 +1,9 @@
 import enum
 from dataclasses import dataclass
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QLabel, QFrame
+
 from custom_exceptions import InvalidFileDataException
 
 
@@ -14,10 +18,20 @@ class GridSize(enum.Enum):
 
 
 class Cell:
-    def __init__(self, row, col, value):
+    def __init__(self, row, col, block_row, block_col, value):
         self.value = value
         self.row = row
         self.col = col
+        self.block_row = block_row
+        self.block_col = block_col
+        self.label_widget = QLabel(str(self.value))
+        self.label_widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        if self.value is None:
+            self.label_widget.setStyleSheet("background-color:#F5F5F5;")
+        else:
+            self.label_widget.setStyleSheet("background-color:#989898;")
+        self.label_widget.setFrameStyle(QFrame.Panel | QFrame.Raised)
+        self.label_widget.wordWrap()
 
 
 class Block:
@@ -34,7 +48,11 @@ class Block:
             for j in range(self.col * self.grid_size["block_cols"],
                            self.col * self.grid_size["block_cols"] + self.grid_size["block_cols"]):
                 # [TODO] Put generate puzzle logic here and assign values to cells
-                self.cells.append(Cell(row=i, col=j, value=0))
+                self.cells.append(Cell(row=i,
+                                       col=j,
+                                       block_row=i - (self.row * self.grid_size["block_rows"]),
+                                       block_col=j - (self.col * self.grid_size["block_cols"]),
+                                       value=(i, j)))
 
     def load(self, filename):
         # [TODO] Do something with the file, read it, and extract value for each cell
@@ -43,7 +61,11 @@ class Block:
             for j in range(self.col * self.grid_size["block_cols"],
                            self.col * self.grid_size["block_cols"] + self.grid_size["block_cols"]):
                 # [TODO] Put load puzzle logic here and assign values to cells
-                self.cells.append(Cell(row=i, col=j, value=0))
+                self.cells.append(Cell(row=i,
+                                       col=j,
+                                       block_row=i - (self.row * self.grid_size["block_rows"]),
+                                       block_col=j - (self.col * self.grid_size["block_cols"]),
+                                       value=(i, j)))
 
 
 class Grid:
