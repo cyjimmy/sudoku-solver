@@ -27,7 +27,13 @@ class Ui_MainWindow(object):
         font = QFont()
         font.setFamilies([u"P052"])
         MainWindow.setFont(font)
-        icon = QIcon(QIcon.fromTheme(u"address-book-new"))
+        icon = QIcon()
+        iconThemeName = u"address-book-new"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon = QIcon.fromTheme(iconThemeName)
+        else:
+            icon.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         MainWindow.setWindowIcon(icon)
         MainWindow.setLayoutDirection(Qt.LeftToRight)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Canada))
@@ -35,38 +41,56 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.pushButton = QPushButton(self.centralwidget)
-        self.pushButton.setObjectName(u"pushButton")
+        self.pushButtonLoadPuzzle = QPushButton(self.centralwidget)
+        self.pushButtonLoadPuzzle.setObjectName(u"pushButtonLoadPuzzle")
         font1 = QFont()
         font1.setFamilies([u"P052"])
         font1.setPointSize(15)
-        self.pushButton.setFont(font1)
-        icon1 = QIcon(QIcon.fromTheme(u"insert-object"))
-        self.pushButton.setIcon(icon1)
-        self.pushButton.setAutoDefault(False)
-        self.pushButton.setFlat(False)
+        self.pushButtonLoadPuzzle.setFont(font1)
+        icon1 = QIcon()
+        iconThemeName = u"insert-object"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon1 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon1.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.verticalLayout.addWidget(self.pushButton)
+        self.pushButtonLoadPuzzle.setIcon(icon1)
+        self.pushButtonLoadPuzzle.setAutoDefault(False)
+        self.pushButtonLoadPuzzle.setFlat(False)
 
-        self.pushButton_3 = QPushButton(self.centralwidget)
-        self.pushButton_3.setObjectName(u"pushButton_3")
-        self.pushButton_3.setFont(font1)
-        icon2 = QIcon(QIcon.fromTheme(u"utilities-system-monitor"))
-        self.pushButton_3.setIcon(icon2)
-        self.pushButton_3.setAutoDefault(False)
-        self.pushButton_3.setFlat(False)
+        self.verticalLayout.addWidget(self.pushButtonLoadPuzzle)
 
-        self.verticalLayout.addWidget(self.pushButton_3)
+        self.pushButtonGeneratePuzzle = QPushButton(self.centralwidget)
+        self.pushButtonGeneratePuzzle.setObjectName(u"pushButtonGeneratePuzzle")
+        self.pushButtonGeneratePuzzle.setFont(font1)
+        icon2 = QIcon()
+        iconThemeName = u"utilities-system-monitor"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon2 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon2.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.pushButton_2 = QPushButton(self.centralwidget)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setFont(font1)
-        icon3 = QIcon(QIcon.fromTheme(u"go-previous"))
-        self.pushButton_2.setIcon(icon3)
-        self.pushButton_2.setAutoDefault(False)
-        self.pushButton_2.setFlat(False)
+        self.pushButtonGeneratePuzzle.setIcon(icon2)
+        self.pushButtonGeneratePuzzle.setAutoDefault(False)
+        self.pushButtonGeneratePuzzle.setFlat(False)
 
-        self.verticalLayout.addWidget(self.pushButton_2)
+        self.verticalLayout.addWidget(self.pushButtonGeneratePuzzle)
+
+        self.pushButtonGoBack = QPushButton(self.centralwidget)
+        self.pushButtonGoBack.setObjectName(u"pushButtonGoBack")
+        self.pushButtonGoBack.setFont(font1)
+        icon3 = QIcon()
+        iconThemeName = u"go-previous"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon3 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon3.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.pushButtonGoBack.setIcon(icon3)
+        self.pushButtonGoBack.setAutoDefault(False)
+        self.pushButtonGoBack.setFlat(False)
+
+        self.verticalLayout.addWidget(self.pushButtonGoBack)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -79,9 +103,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.pushButton.setDefault(False)
-        self.pushButton_3.setDefault(False)
-        self.pushButton_2.setDefault(False)
+        self.pushButtonLoadPuzzle.setDefault(False)
+        self.pushButtonGeneratePuzzle.setDefault(False)
+        self.pushButtonGoBack.setDefault(False)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -89,8 +113,8 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Sudoku Solver: generate puzzle", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Load Puzzle", None))
-        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"Generate Puzzle", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Back", None))
+        self.pushButtonLoadPuzzle.setText(QCoreApplication.translate("MainWindow", u"Load Puzzle", None))
+        self.pushButtonGeneratePuzzle.setText(QCoreApplication.translate("MainWindow", u"Generate Puzzle", None))
+        self.pushButtonGoBack.setText(QCoreApplication.translate("MainWindow", u"Back", None))
     # retranslateUi
 

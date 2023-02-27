@@ -29,12 +29,24 @@ class Ui_MainWindow(object):
         font = QFont()
         font.setFamilies([u"P052"])
         MainWindow.setFont(font)
-        icon = QIcon(QIcon.fromTheme(u"system-run"))
+        icon = QIcon()
+        iconThemeName = u"system-run"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon = QIcon.fromTheme(iconThemeName)
+        else:
+            icon.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         MainWindow.setWindowIcon(icon)
         MainWindow.setWindowOpacity(3.000000000000000)
         self.actionExit = QAction(MainWindow)
         self.actionExit.setObjectName(u"actionExit")
-        icon1 = QIcon(QIcon.fromTheme(u"application-exit"))
+        icon1 = QIcon()
+        iconThemeName = u"application-exit"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon1 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon1.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         self.actionExit.setIcon(icon1)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -58,26 +70,32 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.label)
 
-        self.pushButton = QPushButton(self.centralwidget)
-        self.pushButton.setObjectName(u"pushButton")
+        self.pushButtonCreatePuzzle = QPushButton(self.centralwidget)
+        self.pushButtonCreatePuzzle.setObjectName(u"pushButtonCreatePuzzle")
         font2 = QFont()
         font2.setFamilies([u"P052"])
         font2.setPointSize(15)
-        self.pushButton.setFont(font2)
-        self.pushButton.setLayoutDirection(Qt.LeftToRight)
-        self.pushButton.setAutoFillBackground(False)
-        self.pushButton.setLocale(QLocale(QLocale.English, QLocale.Canada))
-        icon2 = QIcon(QIcon.fromTheme(u"applications-office"))
-        self.pushButton.setIcon(icon2)
+        self.pushButtonCreatePuzzle.setFont(font2)
+        self.pushButtonCreatePuzzle.setLayoutDirection(Qt.LeftToRight)
+        self.pushButtonCreatePuzzle.setAutoFillBackground(False)
+        self.pushButtonCreatePuzzle.setLocale(QLocale(QLocale.English, QLocale.Canada))
+        icon2 = QIcon()
+        iconThemeName = u"applications-office"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon2 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon2.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
 
-        self.verticalLayout.addWidget(self.pushButton)
+        self.pushButtonCreatePuzzle.setIcon(icon2)
 
-        self.pushButton_2 = QPushButton(self.centralwidget)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setFont(font2)
-        self.pushButton_2.setIcon(icon1)
+        self.verticalLayout.addWidget(self.pushButtonCreatePuzzle)
 
-        self.verticalLayout.addWidget(self.pushButton_2)
+        self.pushButtonExit = QPushButton(self.centralwidget)
+        self.pushButtonExit.setObjectName(u"pushButtonExit")
+        self.pushButtonExit.setFont(font2)
+        self.pushButtonExit.setIcon(icon1)
+
+        self.verticalLayout.addWidget(self.pushButtonExit)
 
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
@@ -115,8 +133,8 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Sudoku Solver", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Sudoku Solver", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Create Puzzle", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
+        self.pushButtonCreatePuzzle.setText(QCoreApplication.translate("MainWindow", u"Create Puzzle", None))
+        self.pushButtonExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.menuMain.setTitle(QCoreApplication.translate("MainWindow", u"Main", None))
     # retranslateUi
 
