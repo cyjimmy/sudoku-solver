@@ -53,7 +53,7 @@ class Block:
                                        col=j,
                                        block_row=i - (self.row * self.grid_size["block_rows"]),
                                        block_col=j - (self.col * self.grid_size["block_cols"]),
-                                       value=puzzle[i][j]))
+                                       value=puzzle[i][j] if puzzle[i][j] != 0 else ""))
 
     def load(self, filename):
         # [TODO] Do something with the file, read it, and extract value for each cell
