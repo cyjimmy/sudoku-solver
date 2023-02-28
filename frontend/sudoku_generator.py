@@ -12,7 +12,7 @@ class SudokuGenerator:
         self._empty = 0.75
 
     def generate(self):
-        if self._size <= 16:
+        if self._size <= 12:
             self._fill_diagonal_block()
             self._fill_cell(0, 0)
         else:
