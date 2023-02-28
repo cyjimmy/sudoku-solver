@@ -25,7 +25,8 @@
    <string>Sudoku Solver: generate puzzle</string>
   </property>
   <property name="windowIcon">
-   <iconset theme="address-book-new"/>
+   <iconset theme="address-book-new">
+    <normaloff>.</normaloff>.</iconset>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
@@ -36,7 +37,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="pushButtonLoadPuzzle">
       <property name="font">
        <font>
         <family>P052</family>
@@ -47,7 +48,8 @@
        <string>Load Puzzle</string>
       </property>
       <property name="icon">
-       <iconset theme="insert-object"/>
+       <iconset theme="insert-object">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -61,7 +63,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton_3">
+     <widget class="QPushButton" name="pushButtonGeneratePuzzle">
       <property name="font">
        <font>
         <family>P052</family>
@@ -72,7 +74,8 @@
        <string>Generate Puzzle</string>
       </property>
       <property name="icon">
-       <iconset theme="utilities-system-monitor"/>
+       <iconset theme="utilities-system-monitor">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -86,7 +89,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pushButton_2">
+     <widget class="QPushButton" name="pushButtonGoBack">
       <property name="font">
        <font>
         <family>P052</family>
@@ -97,7 +100,8 @@
        <string>Back</string>
       </property>
       <property name="icon">
-       <iconset theme="go-previous"/>
+       <iconset theme="go-previous">
+        <normaloff>.</normaloff>.</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>

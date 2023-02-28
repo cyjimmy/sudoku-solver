@@ -25,7 +25,8 @@
    <string>Sudoku Solver</string>
   </property>
   <property name="windowIcon">
-   <iconset theme="system-run"/>
+   <iconset theme="system-run">
+    <normaloff>.</normaloff>.</iconset>
   </property>
   <property name="windowOpacity">
    <double>3.000000000000000</double>
@@ -67,7 +68,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="pushButtonCreatePuzzle">
         <property name="font">
          <font>
           <family>P052</family>
@@ -87,12 +88,13 @@
          <string>Create Puzzle</string>
         </property>
         <property name="icon">
-         <iconset theme="applications-office"/>
+         <iconset theme="applications-office">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_2">
+       <widget class="QPushButton" name="pushButtonExit">
         <property name="font">
          <font>
           <family>P052</family>
@@ -103,7 +105,8 @@
          <string>Exit</string>
         </property>
         <property name="icon">
-         <iconset theme="application-exit"/>
+         <iconset theme="application-exit">
+          <normaloff>.</normaloff>.</iconset>
         </property>
        </widget>
       </item>
@@ -145,7 +148,8 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionExit">
    <property name="icon">
-    <iconset theme="application-exit"/>
+    <iconset theme="application-exit">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Exit</string>
