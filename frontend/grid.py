@@ -5,6 +5,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QFrame
 
 from custom_exceptions import InvalidFileDataException
+from frontend.sudoku_generator import SudokuGenerator
 
 
 @dataclass
@@ -39,10 +40,10 @@ class Block:
         self.block_num = block_num
         self.cells = []
         self.grid_size = grid_size
-        self.row = int(block_num / (self.grid_size["block_cols"]))
-        self.col = block_num % (self.grid_size["block_cols"])
+        self.row = int(block_num / (self.grid_size["block_rows"]))
+        self.col = block_num % (self.grid_size["block_rows"])
 
-    def generate(self):
+    def generate(self, puzzle):
         for i in range(self.row * self.grid_size["block_rows"],
                        self.row * self.grid_size["block_rows"] + self.grid_size["block_rows"]):
             for j in range(self.col * self.grid_size["block_cols"],
@@ -52,7 +53,7 @@ class Block:
                                        col=j,
                                        block_row=i - (self.row * self.grid_size["block_rows"]),
                                        block_col=j - (self.col * self.grid_size["block_cols"]),
-                                       value=(i, j)))
+                                       value=puzzle[i][j] if puzzle[i][j] != 0 else ""))
 
     def load(self, filename):
         # [TODO] Do something with the file, read it, and extract value for each cell
@@ -75,9 +76,11 @@ class Grid:
 
     def generate(self, grid_size):
         self.grid_size = grid_size.value
+        puzzle_generator = SudokuGenerator(self.grid_size["blocks"])
+        puzzle = puzzle_generator.generate()
         for i in range(0, self.grid_size["blocks"]):
             block = Block(self.grid_size, i)
-            block.generate()
+            block.generate(puzzle)
             self.blocks.append(block)
 
         # for block in self.blocks:

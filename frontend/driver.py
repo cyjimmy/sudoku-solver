@@ -16,6 +16,7 @@ from grid import Grid, GridSize
 Global_Window_DLL = dll.DoublyLinkedList()
 
 
+
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -219,7 +220,6 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
 class Driver:
     def __init__(self):
         self.app = QtWidgets.QApplication(sys.argv)
-
         main_window = MainWindow()
         Global_Window_DLL.append(main_window)
         main_window.show()
