@@ -3,6 +3,8 @@ import random
 
 
 class SudokuGenerator:
+    SUDOKU_FOLDER = "./sudoku_files/"
+
     def __init__(self, size):
         self._size = size
         self._block_rows = math.floor(size ** 0.5)
@@ -66,7 +68,7 @@ class SudokuGenerator:
 
     def _generate_from_file(self):
         file_number = random.choice([1, 2, 3])
-        file = f'{self._size}-{file_number}.txt'
+        file = f'{self.SUDOKU_FOLDER}{self._size}-{file_number}.txt'
         with open(file) as input_file:
             rows = input_file.readlines()
             for index, row in enumerate(rows):
