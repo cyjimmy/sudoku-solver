@@ -16,7 +16,6 @@ from grid import Grid, GridSize
 Global_Window_DLL = dll.DoublyLinkedList()
 
 
-
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -102,28 +101,29 @@ class GeneratePuzzleDialog(generatepuzzledialog.Ui_Dialog, QDialog):
 
     def on_click_ok(self):
         grid_size = self.sudokuSizeSelector.currentText()
-        self.grid = Grid()
-        self.grid_brute = Grid()
-        self.grid_csp = Grid()
+        self.grid = Grid(GridSize[str(grid_size)])
+        # self.grid_brute = Grid()
+        # self.grid_csp = Grid()
         try:
-            self.grid.generate(GridSize[str(grid_size)])
-            self.grid_csp.generate(GridSize[str(grid_size)])
-            self.grid_brute.generate(GridSize[str(grid_size)])
+            self.grid.generate()
+            # self.grid_csp.generate(GridSize[str(grid_size)])
+            # self.grid_brute.generate(GridSize[str(grid_size)])
         except KeyError as e:
             QMessageBox.critical(self, e.__class__.__name__, "Can't select Empty Grid Size!!")
         else:
-            Global_Window_DLL.append(LoadedSudokuWindow(self.grid, self.grid_csp, self.grid_brute))
+            # Global_Window_DLL.append(LoadedSudokuWindow(self.grid, self.grid_csp, self.grid_brute))
+            Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
             node = Global_Window_DLL.get_node(self.parent)
             node.next.data.show()
             node.data.hide()
 
 
 class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow):
-    def __init__(self, grid, grid_brute, grid_csp):
+    def __init__(self, grid):
         super().__init__()
         self.grid = grid
-        self.grid_brute = grid_brute
-        self.grid_csp = grid_csp
+        # self.grid_brute = grid_brute
+        # self.grid_csp = grid_csp
         self.setupUi(self)
         self.pushButtonBack.clicked.connect(self.on_click_go_back)
         self.pushButtonExit.clicked.connect(self.on_click_exit)
@@ -133,19 +133,22 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.csp_window = None
         self.pushButtonBrute.clicked.connect(self.on_click_brute)
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
+        print(self.grid)
 
     def on_click_brute(self):
-        if self.grid.grid_size["blocks"] > 25:
+        if self.grid.grid_size.value["blocks"] > 25:
             QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
                                                                   "is disabled!")
         else:
             if self.brute_window is None:
-                self.brute_window = SolverWindow(self.grid_brute, "Brute Force/Heuristic")
+                # Not sure why we use the brute force grid.
+                # self.brute_window = SolverWindow(self.grid_brute, "Brute Force/Heuristic")
+                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic")
             self.brute_window.show()
 
     def on_click_csp(self):
         if self.csp_window is None:
-            self.csp_window = SolverWindow(self.grid_csp, "CSP")
+            self.csp_window = SolverWindow(self.grid.clone(), "CSP")
         self.csp_window.show()
 
     def on_click_go_back(self):
@@ -165,7 +168,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         Global_Window_DLL.delete(temp.data)
 
     def build_grid(self):
-        if self.grid.grid_size["blocks"] > 25:
+        if self.grid.grid_size.value["blocks"] > 25:
             self.pushButtonBrute.setDisabled(True)
 
         for block in self.grid.blocks:

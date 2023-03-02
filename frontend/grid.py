@@ -3,10 +3,11 @@ from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QFrame
+from typing import List
 
 from custom_exceptions import InvalidFileDataException
-from frontend.sudoku_generator import SudokuGenerator
-
+# from frontend.sudoku_generator import SudokuGenerator
+from sudoku_generator import SudokuGenerator
 
 @dataclass
 class GridSize(enum.Enum):
@@ -34,14 +35,26 @@ class Cell:
         self.label_widget.setFrameStyle(QFrame.Panel | QFrame.Raised)
         self.label_widget.wordWrap()
 
+    def __str__(self):
+        result = f"Cell(Value={self.value}, Row={self.row}, Column={self.col})\n"
+        return result
+
 
 class Block:
+    cells: List[Cell]
+
     def __init__(self, grid_size, block_num):
         self.block_num = block_num
         self.cells = []
         self.grid_size = grid_size
         self.row = int(block_num / (self.grid_size["block_rows"]))
         self.col = block_num % (self.grid_size["block_rows"])
+
+    def __str__(self):
+        result = f"Block(Row={self.row}, Column={self.col})\n"
+        for cell in self.cells:
+            result += cell.__str__()
+        return result
 
     def generate(self, puzzle):
         for i in range(self.row * self.grid_size["block_rows"],
@@ -70,17 +83,36 @@ class Block:
 
 
 class Grid:
-    def __init__(self):
-        self.blocks = []
-        self.grid_size = None
+    blocks: List[Block]
+    puzzle: list
+    grid_size: GridSize
 
-    def generate(self, grid_size):
-        self.grid_size = grid_size.value
-        puzzle_generator = SudokuGenerator(self.grid_size["blocks"])
-        puzzle = puzzle_generator.generate()
-        for i in range(0, self.grid_size["blocks"]):
-            block = Block(self.grid_size, i)
-            block.generate(puzzle)
+    def __init__(self, grid_size, puzzle=None):
+        self.blocks = []
+        self.grid_size = grid_size
+        if puzzle is None:
+            puzzle_generator = SudokuGenerator(self.grid_size.value["blocks"])
+            self.puzzle = puzzle_generator.generate()
+        else:
+            self.puzzle = puzzle
+
+    def __str__(self):
+        result = "Grid\n"
+        for block in self.blocks:
+            result += block.__str__() + "\n"
+        return result
+
+    def clone(self):
+        if self.grid_size is None:
+            raise ValueError("Error - Grid Size is none can't copy this grid")
+        new_grid = Grid(self.grid_size, self.puzzle)
+        new_grid.generate()
+        return new_grid
+
+    def generate(self):
+        for i in range(0, self.grid_size.value["blocks"]):
+            block = Block(self.grid_size.value, i)
+            block.generate(self.puzzle)
             self.blocks.append(block)
 
         # for block in self.blocks:

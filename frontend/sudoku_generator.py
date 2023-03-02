@@ -84,3 +84,8 @@ class SudokuGenerator:
             col = index % self._size
             board[row][col] = self._board[row][col]
         self._board = board
+
+
+if __name__ == "__main__":
+    puzzle_generator = SudokuGenerator(9)
+    print(puzzle_generator.generate())
