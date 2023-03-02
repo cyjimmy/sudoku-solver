@@ -30,7 +30,7 @@ class Cell:
         self.block_col = block_col
         self.label_widget = QLabel(str(self.value))
         self.label_widget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-        if self.value is None:
+        if self.value == "":
             self.label_widget.setStyleSheet("background-color:#F5F5F5;")
         else:
             self.label_widget.setStyleSheet("background-color:#989898;")
