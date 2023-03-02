@@ -1,6 +1,7 @@
 import copy
 import sys
 import time
+from threading import Thread
 
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QDialog, QMessageBox, QGridLayout, QWidget, QScrollArea
@@ -13,6 +14,7 @@ import loadedsudokuwindow
 import mainwindow
 import solver
 from grid import Grid, GridSize
+from solver import BruteForceSolver, SudokuSolver, CSPSolver
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
@@ -136,12 +138,12 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
                                                                   "is disabled!")
         else:
             if self.brute_window is None:
-                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic")
+                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
             self.brute_window.show()
 
     def on_click_csp(self):
         if self.csp_window is None:
-            self.csp_window = SolverWindow(self.grid.clone(), "CSP")
+            self.csp_window = SolverWindow(self.grid.clone(), "CSP", CSPSolver())
         self.csp_window.show()
 
     def on_click_go_back(self):
@@ -181,7 +183,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
 
 
 class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
-    def __init__(self, grid, algorithm):
+    def __init__(self, grid, algorithm, sudoku_solver: solver.SudokuSolver):
         super().__init__()
         self.grid = grid
         self.setupUi(self)
@@ -192,12 +194,14 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.labelTime.setText("Unknown")
         self.pushButtonExit.clicked.connect(self.on_click_exit)
         self.build_grid()
+
+        self.solver = sudoku_solver
+
         self.solve()
 
     def solve(self):
         start = time.time()
-        brute_force_solver = solver.BruteForceSolver()
-        result = brute_force_solver.solveSudoku(self.grid.puzzle)
+        result = self.solver.solve(self.grid.puzzle)
         end = time.time() - start
 
         if isinstance(result, list):

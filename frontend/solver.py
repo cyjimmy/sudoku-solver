@@ -101,8 +101,18 @@ class Ui_MainWindow(object):
     # retranslateUi
 
 
-class BruteForceSolver:
-    def solveSudoku(self, board):
+class SudokuSolver:
+    def solve(self, board: list):
+        raise NotImplemented
+
+
+class CSPSolver(SudokuSolver):
+    def solve(self, board: list):
+        return False
+
+
+class BruteForceSolver(SudokuSolver):
+    def solve(self, board):
         """
         Solves the Sudoku puzzle using backtracking algorithm.
 
@@ -128,7 +138,7 @@ class BruteForceSolver:
                 board[row][col] = num
 
                 # Recursively try solving the rest of the puzzle
-                if self.solveSudoku(board):
+                if self.solve(board):
                     return board
                     # return True
 
