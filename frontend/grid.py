@@ -114,7 +114,7 @@ class Grid:
             self.grid_size = grid_size.value
         else:
             self.grid_size = grid_size
-        if puzzle is None:
+        if puzzle is None and self.grid_size is not None:
             puzzle_generator = SudokuGenerator(self.grid_size["blocks"])
             self.puzzle = puzzle_generator.generate()
         else:
