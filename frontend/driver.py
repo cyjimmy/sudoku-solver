@@ -134,6 +134,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.pushButtonBrute.clicked.connect(self.on_click_brute)
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
         print(self.grid)
+        print(self.grid.puzzle)
 
     def on_click_brute(self):
         if self.grid.grid_size.value["blocks"] > 25:
