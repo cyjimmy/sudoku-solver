@@ -67,8 +67,6 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
             try:
                 self.grid = Grid(None)
                 self.grid.load(filename[0])
-                self.grid_brute.load(filename[0])
-                self.grid_csp.load(filename[0])
             except custom_exceptions.InvalidFileDataException as e:
                 QMessageBox.critical(self, e.__class__.__name__, e.args[0])
             else:
