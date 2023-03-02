@@ -65,7 +65,7 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
 
         if len(filename[0]) != 0:  # make sure user didn't press 'cancel'
             try:
-                self.grid = Grid()
+                self.grid = Grid(None)
                 self.grid.load(filename[0])
                 self.grid_brute.load(filename[0])
                 self.grid_csp.load(filename[0])
@@ -130,7 +130,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         print(self.grid.puzzle)
 
     def on_click_brute(self):
-        if self.grid.grid_size.value["blocks"] > 25:
+        if self.grid.grid_size["blocks"] > 25:
             QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
                                                                   "is disabled!")
         else:
@@ -164,7 +164,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         Global_Window_DLL.delete(temp.data)
 
     def build_grid(self):
-        if self.grid.grid_size.value["blocks"] > 25:
+        if self.grid.grid_size["blocks"] > 25:
             self.pushButtonBrute.setDisabled(True)
 
         for block in self.grid.blocks:

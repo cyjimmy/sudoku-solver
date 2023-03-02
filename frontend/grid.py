@@ -1,7 +1,7 @@
 import enum
 from dataclasses import dataclass
 from math import sqrt, floor
-from typing import TextIO
+from typing import TextIO, Dict, Union
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QFrame
@@ -105,13 +105,17 @@ class Block:
 class Grid:
     blocks: List[Block]
     puzzle: list
-    grid_size: GridSize
+    # grid_size: GridSize
+    grid_size: Dict[str, int]
 
-    def __init__(self, grid_size, puzzle=None):
+    def __init__(self, grid_size: Union[GridSize, Dict[str, int], None], puzzle=None):
         self.blocks = []
-        self.grid_size = grid_size
+        if isinstance(grid_size, GridSize):
+            self.grid_size = grid_size.value
+        else:
+            self.grid_size = grid_size
         if puzzle is None:
-            puzzle_generator = SudokuGenerator(self.grid_size.value["blocks"])
+            puzzle_generator = SudokuGenerator(self.grid_size["blocks"])
             self.puzzle = puzzle_generator.generate()
         else:
             self.puzzle = puzzle
@@ -133,8 +137,8 @@ class Grid:
         return new_grid
 
     def generate(self):
-        for i in range(0, self.grid_size.value["blocks"]):
-            block = Block(self.grid_size.value, i)
+        for i in range(0, self.grid_size["blocks"]):
+            block = Block(self.grid_size, i)
             block.generate(self.puzzle)
             self.blocks.append(block)
 
