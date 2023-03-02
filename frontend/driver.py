@@ -66,15 +66,13 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
         if len(filename[0]) != 0:  # make sure user didn't press 'cancel'
             try:
                 self.grid = Grid()
-                self.grid_brute = Grid()
-                self.grid_csp = Grid()
                 self.grid.load(filename[0])
                 self.grid_brute.load(filename[0])
                 self.grid_csp.load(filename[0])
             except custom_exceptions.InvalidFileDataException as e:
                 QMessageBox.critical(self, e.__class__.__name__, e.args[0])
             else:
-                Global_Window_DLL.append(LoadedSudokuWindow(self.grid, self.grid_csp, self.grid_brute))
+                Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
                 node = Global_Window_DLL.get_node(self)
                 node.next.data.show()
                 node.data.hide()
