@@ -13,7 +13,7 @@ import loadedsudokuwindow
 import mainwindow
 import solver
 from grid import Grid, GridSize
-from solver import BruteForceSolver, SudokuSolver, CSPSolver
+from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
@@ -182,7 +182,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
 
 
 class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
-    def __init__(self, grid, algorithm, sudoku_solver: solver.SudokuSolver):
+    def __init__(self, grid, algorithm, sudoku_solver: SudokuSolver):
         super().__init__()
         self.grid = grid
         self.setupUi(self)
