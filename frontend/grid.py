@@ -129,7 +129,8 @@ class Grid:
 
     def __load_linearly(self, file_content: TextIO, first_line: str):
         """
-        Load sudoku puzzles from a file in the linear form of "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......".
+        Load sudoku puzzles from a file in the linear form of
+        "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......".
 
         :param file_content: TextIO
         :param first_line: str
