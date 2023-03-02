@@ -1,4 +1,3 @@
-import copy
 import sys
 
 from PySide6 import QtWidgets
@@ -155,6 +154,10 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         Global_Window_DLL.delete(self)
 
     def on_click_exit(self):
+        if self.brute_window is not None:
+            self.brute_window.close()
+        if self.csp_window is not None:
+            self.csp_window.close()
         node = Global_Window_DLL.get_node(self)
         temp = node
         while temp.prev is not None:
