@@ -1,5 +1,7 @@
 import enum
 from dataclasses import dataclass
+from math import sqrt, floor
+from typing import TextIO
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QFrame
@@ -55,18 +57,36 @@ class Block:
                                        block_col=j - (self.col * self.grid_size["block_cols"]),
                                        value=puzzle[i][j] if puzzle[i][j] != 0 else ""))
 
-    def load(self, filename):
-        # [TODO] Do something with the file, read it, and extract value for each cell
+    def load(self, sudoku_line: str):
+        """
+        Load a single sudoku puzzle to a block of cells.
+
+        :param sudoku_line: sudoku puzzle
+        """
+        line_index = 0
         for i in range(self.row * self.grid_size["block_rows"],
                        self.row * self.grid_size["block_rows"] + self.grid_size["block_rows"]):
             for j in range(self.col * self.grid_size["block_cols"],
                            self.col * self.grid_size["block_cols"] + self.grid_size["block_cols"]):
-                # [TODO] Put load puzzle logic here and assign values to cells
                 self.cells.append(Cell(row=i,
                                        col=j,
                                        block_row=i - (self.row * self.grid_size["block_rows"]),
                                        block_col=j - (self.col * self.grid_size["block_cols"]),
-                                       value=(i, j)))
+                                       value=self.__get_value(sudoku_line[line_index])))
+                line_index += 1
+
+    @staticmethod
+    def __get_value(character: str) -> str:
+        """
+        Return a numeric str if the given string is valid sudoku cell value, else empty str.
+
+        :param character: str
+        :return: str
+        """
+        if character == '.' or character == '0':
+            return ""
+        else:
+            return character
 
 
 class Grid:
@@ -89,24 +109,74 @@ class Grid:
         #         print(f"{cell.row}, {cell.col}")
 
     def load(self, filename):
-        # [TODO] Do something with the file such that we can get the gridSize. For ex: 9, 12, 25, 100
-        # based on this number, we can find the relevant enum
-        n = 25  # set as constant for now until there's file handling logic
+        """
+        Load all the sudoku puzzles in the given file if it's valid
 
-        for gs in GridSize:
-            if gs.value["blocks"] == n:
-                self.grid_size = gs.value
-                break
+        :param filename: valid filepath
+        :raises: InvalidFileDataException if the given file can't be used to parse sudoku puzzles
+        """
+        with open(filename, "r", encoding="utf-8") as sudoku_grids:
+            line = sudoku_grids.readline()
+            if line == "":
+                raise InvalidFileDataException(filename)
+            try:
+                if '.' in line:
+                    self.__load_linearly(sudoku_grids, line)
+                else:
+                    self.__load_column_by_row(sudoku_grids, line)
+            except IndexError:
+                raise InvalidFileDataException(filename)
 
-        if self.grid_size is None:
-            raise InvalidFileDataException(filename)
-        else:
-            for i in range(0, self.grid_size["blocks"]):
-                block = Block(self.grid_size, i)
-                block.load(filename)
-                self.blocks.append(block)
+    def __load_linearly(self, file_content: TextIO, first_line: str):
+        """
+        Load sudoku puzzles from a file in the linear form of "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......".
 
-            # for block in self.blocks:
-            #     print(f"Block {block.block_num}: {block.row}, {block.col}")
-            #     for cell in block.cells:
-            #         print(f"{cell.row}, {cell.col}")
+        :param file_content: TextIO
+        :param first_line: str
+        """
+        grid_size = len(first_line.strip('\n'))
+        side = floor(sqrt(grid_size))
+        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
+        first_block = Block(self.grid_size, 0)
+        first_block.load(first_line)
+        self.blocks.append(first_block)
+        for block_number, line in enumerate(file_content, start=1):
+            block = Block({"blocks": grid_size, "block_rows": side, "block_cols": side}, block_number)
+            block.load(line.strip('\n'))
+            self.blocks.append(block)
+
+    def __load_column_by_row(self, file_content: TextIO, first_line):
+        """
+        Load sudoku puzzles from a file in the linear form of
+        "
+        003020600
+        900305001
+        001806400
+        008102900
+        700000008
+        006708200
+        002609500
+        800203009
+        005010300
+        ========
+        "
+
+        :param file_content: TextIO
+        :param first_line: str
+        """
+        first_line = first_line.strip('\n')
+        side = len(first_line)
+        grid_size = side * side
+        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
+        line = file_content.readline()
+        block_number = 0
+        while line != "":
+            while line != "" and '=' not in line:
+                first_line += line.strip('\n')
+                line = file_content.readline()
+            block = Block(self.grid_size, block_number)
+            block.load(first_line)
+            self.blocks.append(block)
+            first_line = ""
+            line = file_content.readline()
+            block_number += 1
