@@ -102,16 +102,11 @@ class GeneratePuzzleDialog(generatepuzzledialog.Ui_Dialog, QDialog):
     def on_click_ok(self):
         grid_size = self.sudokuSizeSelector.currentText()
         self.grid = Grid(GridSize[str(grid_size)])
-        # self.grid_brute = Grid()
-        # self.grid_csp = Grid()
         try:
             self.grid.generate()
-            # self.grid_csp.generate(GridSize[str(grid_size)])
-            # self.grid_brute.generate(GridSize[str(grid_size)])
         except KeyError as e:
             QMessageBox.critical(self, e.__class__.__name__, "Can't select Empty Grid Size!!")
         else:
-            # Global_Window_DLL.append(LoadedSudokuWindow(self.grid, self.grid_csp, self.grid_brute))
             Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
             node = Global_Window_DLL.get_node(self.parent)
             node.next.data.show()
@@ -122,8 +117,6 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
     def __init__(self, grid):
         super().__init__()
         self.grid = grid
-        # self.grid_brute = grid_brute
-        # self.grid_csp = grid_csp
         self.setupUi(self)
         self.pushButtonBack.clicked.connect(self.on_click_go_back)
         self.pushButtonExit.clicked.connect(self.on_click_exit)
@@ -142,8 +135,6 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
                                                                   "is disabled!")
         else:
             if self.brute_window is None:
-                # Not sure why we use the brute force grid.
-                # self.brute_window = SolverWindow(self.grid_brute, "Brute Force/Heuristic")
                 self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic")
             self.brute_window.show()
 
