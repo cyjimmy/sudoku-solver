@@ -199,18 +199,21 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.solve()
 
     def solve(self):
-        start = time.time()
-        result = self.solver.solve(self.grid.puzzle)
-        end = time.time() - start
+        if self.grid.grid_size["blocks"] == 9:
+            start = time.time()
+            result = self.solver.solve(self.grid.puzzle)
+            end = time.time() - start
 
-        if isinstance(result, list):
-            self.labelSolveStatus.setText("Solved!")
-            self.grid = self.grid.clone(puzzle=result)
-            print(result)
-            self.build_grid()
+            if isinstance(result, list):
+                self.labelSolveStatus.setText("Solved!")
+                self.grid = self.grid.clone(puzzle=result)
+                print(result)
+                self.build_grid()
+            else:
+                self.labelSolveStatus.setText("Failed")
+            self.labelTime.setText(f"Solved in {round(end, 6)} sec")
         else:
-            self.labelSolveStatus.setText("Failed")
-        self.labelTime.setText(f"Solved in {round(end, 6)} sec")
+            pass
 
     def build_grid(self):
         self.parent_layout = QGridLayout()
