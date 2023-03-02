@@ -102,10 +102,13 @@ class Grid:
             result += block.__str__() + "\n"
         return result
 
-    def clone(self):
+    def clone(self, puzzle=None):
+        if puzzle is None:
+            puzzle = self.puzzle
+
         if self.grid_size is None:
             raise ValueError("Error - Grid Size is none can't copy this grid")
-        new_grid = Grid(self.grid_size, self.puzzle)
+        new_grid = Grid(self.grid_size, puzzle)
         new_grid.generate()
         return new_grid
 

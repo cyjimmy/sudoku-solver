@@ -1,5 +1,6 @@
 import copy
 import sys
+import time
 
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QDialog, QMessageBox, QGridLayout, QWidget, QScrollArea
@@ -191,8 +192,25 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.labelTime.setText("Unknown")
         self.pushButtonExit.clicked.connect(self.on_click_exit)
         self.build_grid()
+        self.solve()
+
+    def solve(self):
+        start = time.time()
+        brute_force_solver = solver.BruteForceSolver()
+        result = brute_force_solver.solveSudoku(self.grid.puzzle)
+        end = time.time() - start
+
+        if isinstance(result, list):
+            self.labelSolveStatus.setText("Solved!")
+            self.grid = self.grid.clone(puzzle=result)
+            print(result)
+            self.build_grid()
+        else:
+            self.labelSolveStatus.setText("Failed")
+        self.labelTime.setText(f"Solved in {round(end, 6)} sec")
 
     def build_grid(self):
+        self.parent_layout = QGridLayout()
         for block in self.grid.blocks:
             layout = QGridLayout()
             for cell in block.cells:
