@@ -1,4 +1,6 @@
 import sys
+import time
+from threading import Thread
 
 from PySide6 import QtWidgets
 from PySide6.QtWidgets import QDialog, QMessageBox, QGridLayout, QWidget, QScrollArea
@@ -11,9 +13,9 @@ import loadedsudokuwindow
 import mainwindow
 import solver
 from grid import Grid, GridSize
+from solver import BruteForceSolver, SudokuSolver, CSPSolver
 
 Global_Window_DLL = dll.DoublyLinkedList()
-
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -101,28 +103,22 @@ class GeneratePuzzleDialog(generatepuzzledialog.Ui_Dialog, QDialog):
 
     def on_click_ok(self):
         grid_size = self.sudokuSizeSelector.currentText()
-        self.grid = Grid()
-        self.grid_brute = Grid()
-        self.grid_csp = Grid()
+        self.grid = Grid(GridSize[str(grid_size)])
         try:
-            self.grid.generate(GridSize[str(grid_size)])
-            self.grid_csp.generate(GridSize[str(grid_size)])
-            self.grid_brute.generate(GridSize[str(grid_size)])
+            self.grid.generate()
         except KeyError as e:
             QMessageBox.critical(self, e.__class__.__name__, "Can't select Empty Grid Size!!")
         else:
-            Global_Window_DLL.append(LoadedSudokuWindow(self.grid, self.grid_csp, self.grid_brute))
+            Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
             node = Global_Window_DLL.get_node(self.parent)
             node.next.data.show()
             node.data.hide()
 
 
 class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow):
-    def __init__(self, grid, grid_brute, grid_csp):
+    def __init__(self, grid):
         super().__init__()
         self.grid = grid
-        self.grid_brute = grid_brute
-        self.grid_csp = grid_csp
         self.setupUi(self)
         self.pushButtonBack.clicked.connect(self.on_click_go_back)
         self.pushButtonExit.clicked.connect(self.on_click_exit)
@@ -132,19 +128,21 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.csp_window = None
         self.pushButtonBrute.clicked.connect(self.on_click_brute)
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
+        print(self.grid)
+        print(self.grid.puzzle)
 
     def on_click_brute(self):
-        if self.grid.grid_size["blocks"] > 25:
+        if self.grid.grid_size.value["blocks"] > 25:
             QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
                                                                   "is disabled!")
         else:
             if self.brute_window is None:
-                self.brute_window = SolverWindow(self.grid_brute, "Brute Force/Heuristic")
+                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
             self.brute_window.show()
 
     def on_click_csp(self):
         if self.csp_window is None:
-            self.csp_window = SolverWindow(self.grid_csp, "CSP")
+            self.csp_window = SolverWindow(self.grid.clone(), "CSP", CSPSolver())
         self.csp_window.show()
 
     def on_click_go_back(self):
@@ -168,7 +166,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         Global_Window_DLL.delete(temp.data)
 
     def build_grid(self):
-        if self.grid.grid_size["blocks"] > 25:
+        if self.grid.grid_size.value["blocks"] > 25:
             self.pushButtonBrute.setDisabled(True)
 
         for block in self.grid.blocks:
@@ -188,7 +186,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
 
 
 class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
-    def __init__(self, grid, algorithm):
+    def __init__(self, grid, algorithm, sudoku_solver: solver.SudokuSolver):
         super().__init__()
         self.grid = grid
         self.setupUi(self)
@@ -200,7 +198,26 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.pushButtonExit.clicked.connect(self.on_click_exit)
         self.build_grid()
 
+        self.solver = sudoku_solver
+
+        self.solve()
+
+    def solve(self):
+        start = time.time()
+        result = self.solver.solve(self.grid.puzzle)
+        end = time.time() - start
+
+        if isinstance(result, list):
+            self.labelSolveStatus.setText("Solved!")
+            self.grid = self.grid.clone(puzzle=result)
+            print(result)
+            self.build_grid()
+        else:
+            self.labelSolveStatus.setText("Failed")
+        self.labelTime.setText(f"Solved in {round(end, 6)} sec")
+
     def build_grid(self):
+        self.parent_layout = QGridLayout()
         for block in self.grid.blocks:
             layout = QGridLayout()
             for cell in block.cells:
