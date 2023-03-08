@@ -11,14 +11,15 @@ from custom_exceptions import InvalidFileDataException
 # from frontend.sudoku_generator import SudokuGenerator
 from sudoku_generator import SudokuGenerator
 
+
 @dataclass
 class GridSize(enum.Enum):
-    __order__ = "NINE TWELVE SIXTEEN TWENTY_FIVE HUNDRED"
-    NINE = {"blocks": 9, "block_rows": 3, "block_cols": 3}
-    TWELVE = {"blocks": 12, "block_rows": 3, "block_cols": 4}
-    SIXTEEN = {"blocks": 16, "block_rows": 4, "block_cols": 4}
-    TWENTY_FIVE = {"blocks": 25, "block_rows": 5, "block_cols": 5}
-    HUNDRED = {"blocks": 100, "block_rows": 10, "block_cols": 10}
+    __order__ = "_9X9 _12X12 _16X16 _25X25 _100X100"
+    _9X9 = {"blocks": 9, "block_rows": 3, "block_cols": 3, "description": "9 X 9"}
+    _12X12 = {"blocks": 12, "block_rows": 3, "block_cols": 4, "description": "12 X 12"}
+    _16X16 = {"blocks": 16, "block_rows": 4, "block_cols": 4, "description": "16 X 16"}
+    _25X25 = {"blocks": 25, "block_rows": 5, "block_cols": 5, "description": "25 X 25"}
+    _100X100 = {"blocks": 100, "block_rows": 10, "block_cols": 10, "description": "100 X 100"}
 
 
 class Cell:

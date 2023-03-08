@@ -28,7 +28,13 @@ class Ui_MainWindow(object):
         font = QFont()
         font.setFamilies([u"P052"])
         MainWindow.setFont(font)
-        icon = QIcon(QIcon.fromTheme(u"package-x-generic"))
+        icon = QIcon()
+        iconThemeName = u"package-x-generic"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon = QIcon.fromTheme(iconThemeName)
+        else:
+            icon.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         MainWindow.setWindowIcon(icon)
         MainWindow.setLayoutDirection(Qt.LeftToRight)
         MainWindow.setLocale(QLocale(QLocale.English, QLocale.Canada))
@@ -47,7 +53,13 @@ class Ui_MainWindow(object):
         font1.setPointSize(12)
         self.pushButtonBrute.setFont(font1)
         self.pushButtonBrute.setLayoutDirection(Qt.LeftToRight)
-        icon1 = QIcon(QIcon.fromTheme(u"system-run"))
+        icon1 = QIcon()
+        iconThemeName = u"system-run"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon1 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon1.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
         self.pushButtonBrute.setIcon(icon1)
 
         self.horizontalLayout.addWidget(self.pushButtonBrute)
@@ -56,14 +68,7 @@ class Ui_MainWindow(object):
         self.pushButtonCSP.setObjectName(u"pushButtonCSP")
         self.pushButtonCSP.setFont(font1)
         self.pushButtonCSP.setLayoutDirection(Qt.LeftToRight)
-        icon2 = QIcon()
-        iconThemeName = u"system-run"
-        if QIcon.hasThemeIcon(iconThemeName):
-            icon2 = QIcon.fromTheme(iconThemeName)
-        else:
-            icon2.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
-
-        self.pushButtonCSP.setIcon(icon2)
+        self.pushButtonCSP.setIcon(icon1)
 
         self.horizontalLayout.addWidget(self.pushButtonCSP)
 
@@ -71,8 +76,14 @@ class Ui_MainWindow(object):
         self.pushButtonBack.setObjectName(u"pushButtonBack")
         self.pushButtonBack.setFont(font1)
         self.pushButtonBack.setLayoutDirection(Qt.LeftToRight)
-        icon3 = QIcon(QIcon.fromTheme(u"go-previous"))
-        self.pushButtonBack.setIcon(icon3)
+        icon2 = QIcon()
+        iconThemeName = u"go-previous"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon2 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon2.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.pushButtonBack.setIcon(icon2)
 
         self.horizontalLayout.addWidget(self.pushButtonBack)
 
@@ -80,8 +91,14 @@ class Ui_MainWindow(object):
         self.pushButtonExit.setObjectName(u"pushButtonExit")
         self.pushButtonExit.setFont(font1)
         self.pushButtonExit.setLayoutDirection(Qt.LeftToRight)
-        icon4 = QIcon(QIcon.fromTheme(u"application-exit"))
-        self.pushButtonExit.setIcon(icon4)
+        icon3 = QIcon()
+        iconThemeName = u"application-exit"
+        if QIcon.hasThemeIcon(iconThemeName):
+            icon3 = QIcon.fromTheme(iconThemeName)
+        else:
+            icon3.addFile(u".", QSize(), QIcon.Normal, QIcon.Off)
+
+        self.pushButtonExit.setIcon(icon3)
 
         self.horizontalLayout.addWidget(self.pushButtonExit)
 
@@ -109,7 +126,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Loaded Sudoku Puzzle", None))
         self.pushButtonBrute.setText(QCoreApplication.translate("MainWindow", u"Solve (Brute/Heuristic)", None))
         self.pushButtonCSP.setText(QCoreApplication.translate("MainWindow", u"Solve (CSP)", None))
-        self.pushButtonBack.setText(QCoreApplication.translate("MainWindow", u"Go Back", None))
+        self.pushButtonBack.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.pushButtonExit.setText(QCoreApplication.translate("MainWindow", u"EXIT", None))
     # retranslateUi
 
