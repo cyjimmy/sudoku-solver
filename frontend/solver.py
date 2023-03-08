@@ -99,3 +99,4 @@ class Ui_MainWindow(object):
         self.labelTime.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.pushButtonExit.setText(QCoreApplication.translate("MainWindow", u"EXIT", None))
     # retranslateUi
+

@@ -114,6 +114,7 @@ class GeneratePuzzleDialog(generatepuzzledialog.Ui_Dialog, QDialog):
 class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow):
     def __init__(self, grid):
         super().__init__()
+        self.showMaximized()
         self.grid = grid
         self.setupUi(self)
         self.pushButtonBack.clicked.connect(self.on_click_go_back)
@@ -184,6 +185,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
 class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
     def __init__(self, grid, algorithm, sudoku_solver: SudokuSolver):
         super().__init__()
+        self.showMaximized()
         self.grid = grid
         self.setupUi(self)
 
