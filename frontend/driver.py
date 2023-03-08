@@ -203,7 +203,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
     def solve(self):
         # if self.grid.grid_size["blocks"] == 9:
         if True:
-                start = time.time()
+            start = time.time()
             result = self.solver.solve(self.grid.puzzle)
             end = time.time() - start
 
