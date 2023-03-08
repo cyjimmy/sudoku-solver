@@ -136,6 +136,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
             if self.brute_window is None:
                 self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
             self.brute_window.show()
+            self.brute_window.solve()
 
     def on_click_csp(self):
         if self.csp_window is None:
@@ -197,8 +198,6 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.build_grid()
 
         self.solver = sudoku_solver
-
-        self.solve()
 
     def solve(self):
         # if self.grid.grid_size["blocks"] == 9:
