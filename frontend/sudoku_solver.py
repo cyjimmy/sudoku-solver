@@ -1,6 +1,7 @@
 import random
 import time
 
+SOLVE_TIME_LIMIT = 120
 
 class SudokuSolver:
     def solve(self, board: list, start_time):
@@ -14,7 +15,7 @@ class CSPSolver(SudokuSolver):
 
 class BruteForceSolver(SudokuSolver):
     def solve(self, board, start_time):
-        if time.time() - start_time > 120:
+        if time.time() - start_time > SOLVE_TIME_LIMIT:
             return False
         n = len(board)
         #
