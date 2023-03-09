@@ -1,8 +1,9 @@
 import sys
 import time
-from threading import Thread
+from functools import partial
 
 from PySide6 import QtWidgets
+from PySide6.QtCore import QThreadPool
 from PySide6.QtWidgets import QDialog, QMessageBox, QGridLayout, QWidget, QScrollArea
 
 import custom_exceptions
@@ -14,6 +15,7 @@ import mainwindow
 import solver
 from grid import Grid, GridSize
 from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver
+from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
@@ -56,7 +58,7 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
 
     def on_click_load(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, caption="Choose a TXT puzzle to load",
-                                                          dir="./", filter="Text files (*.txt)")
+                                                         dir="./", filter="Text files (*.txt)")
 
         """
         # [TODO] Some logic that determines if the file format is correct/data inside the file is correct? If it's not,
@@ -123,20 +125,37 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.build_grid()
         self.brute_window = None
         self.csp_window = None
+        self.brute_worker = None
+        self.csp_worker = None
         self.pushButtonBrute.clicked.connect(self.on_click_brute)
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
+        self.brute_threadpool = None
+        self.csp_threadpool = None
         print(self.grid)
         print(self.grid.puzzle)
 
     def on_click_brute(self):
+
         if self.grid.grid_size["blocks"] > 25:
             QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
                                                                   "is disabled!")
         else:
             if self.brute_window is None:
                 self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
+
             self.brute_window.show()
-            self.brute_window.solve()
+
+            self.brute_worker = Worker(self.brute_window.solve)
+            self.brute_worker.setAutoDelete(True)
+            self.brute_worker.signals.finished.connect(partial(self.grid_solved, self.brute_worker))
+
+            self.brute_threadpool = QThreadPool()
+            self.brute_threadpool.setMaxThreadCount(1)
+            self.brute_threadpool.start(self.brute_worker)
+
+    def grid_solved(self, worker):
+        print(worker.result)
+        self.brute_window.update_widget(worker.result, worker.finished_status, worker.timer)
 
     def on_click_csp(self):
         if self.csp_window is None:
@@ -148,6 +167,7 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         node.prev.data.show()
         node.data.close()
         Global_Window_DLL.delete(self)
+        Global_Window_DLL.print()
 
     def on_click_exit(self):
         if self.brute_window is not None:
@@ -189,35 +209,42 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.showMaximized()
         self.grid = grid
         self.setupUi(self)
-
         self.parent_layout = QGridLayout()
         self.labelAlgorithm.setText(algorithm)
-        self.labelSolveStatus.setText("Unknown")
-        self.labelTime.setText("Unknown")
+        self.labelSolveStatus.setText("Status: Pending")
+        self.labelTime.setText("Loading Puzzle....WAIT!!!")
         self.pushButtonExit.clicked.connect(self.on_click_exit)
-        self.build_grid()
+        self.scroll = None
+        self.__build_grid()
 
         self.solver = sudoku_solver
 
+    def update_widget(self, result, finished_status, timer):
+        self.labelSolveStatus.setText(str(finished_status))
+        self.labelTime.setText(f"Solved in {round(timer, 6)} sec")
+        self.verticalLayout.removeWidget(self.scroll)
+        self.grid = self.grid.clone(puzzle=result)
+        print("here")
+        print(result)
+        self.__build_grid()
+
     def solve(self):
-        # if self.grid.grid_size["blocks"] == 9:
+        # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
+        # # blocking the main thread which I don't even think is possible
+        time.sleep(5)
+
+        self.labelTime.setText("Background Thread In progress....")
         if True:
             start = time.time()
             result = self.solver.solve(self.grid.puzzle)
             end = time.time() - start
-
             if isinstance(result, list):
-                self.labelSolveStatus.setText("Solved!")
-                self.grid = self.grid.clone(puzzle=result)
                 print(result)
-                self.build_grid()
-            else:
-                self.labelSolveStatus.setText("Failed")
-            self.labelTime.setText(f"Solved in {round(end, 6)} sec")
+            return result, end
         else:
             pass
 
-    def build_grid(self):
+    def __build_grid(self):
         self.parent_layout = QGridLayout()
         for block in self.grid.blocks:
             layout = QGridLayout()
@@ -229,10 +256,10 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
 
         widget = QWidget()
         widget.setLayout(self.parent_layout)
-        scroll = QScrollArea()
-        scroll.setWidget(widget)
-        scroll.setWidgetResizable(True)
-        self.verticalLayout.addWidget(scroll)
+        self.scroll = QScrollArea()
+        self.scroll.setWidget(widget)
+        self.scroll.setWidgetResizable(True)
+        self.verticalLayout.addWidget(self.scroll)
 
     def on_click_exit(self):
         self.close()
