@@ -148,6 +148,9 @@ class Grid:
         #     for cell in block.cells:
         #         print(f"{cell.row}, {cell.col}")
 
+    def _set_puzzle(self):
+        self.puzzle = []
+
     def load(self, filename):
         """
         Load all the sudoku puzzles in the given file if it's valid
@@ -166,6 +169,7 @@ class Grid:
                     self.__load_column_by_row(sudoku_grids, line)
             except IndexError:
                 raise InvalidFileDataException(filename)
+        self._set_puzzle()
 
     def __load_linearly(self, file_content: TextIO, first_line: str):
         """
@@ -177,7 +181,7 @@ class Grid:
         """
         grid_size = len(first_line.strip('\n'))
         side = floor(sqrt(grid_size))
-        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
+        self.grid_size = {"blocks": grid_size//side, "block_rows": side, "block_cols": side}
         first_block = Block(self.grid_size, 0)
         first_block.load(first_line)
         self.blocks.append(first_block)
@@ -208,7 +212,7 @@ class Grid:
         first_line = first_line.strip('\n')
         side = len(first_line)
         grid_size = side * side
-        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
+        self.grid_size = {"blocks": grid_size//side, "block_rows": side, "block_cols": side}
         line = file_content.readline()
         block_number = 0
         while line != "":

@@ -1,24 +1,24 @@
 import random
 import time
 
-SOLVE_TIME_LIMIT = 120
+SOLVE_TIME_LIMIT = 15
+
 
 class SudokuSolver:
-    def solve(self, board: list, start_time):
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         raise NotImplemented
 
 
 class CSPSolver(SudokuSolver):
-    def solve(self, board: list, start_time):
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         return False
 
 
 class BruteForceSolver(SudokuSolver):
-    def solve(self, board, start_time):
-        if time.time() - start_time > SOLVE_TIME_LIMIT:
+    def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        if time.time() - start_time > limit:
             return False
         n = len(board)
-        #
         empty = self.find_empty(board)
         if not empty:
             return board

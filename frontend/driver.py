@@ -1,6 +1,8 @@
 import sys
 import time
 from functools import partial
+import threading
+from threading import Semaphore, Thread
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThreadPool
@@ -18,6 +20,8 @@ from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver
 from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
+
+TIME_LIMIT = {9: 10, 12: 15, 16: 16, 25: 160}
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -72,6 +76,7 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
             except custom_exceptions.InvalidFileDataException as e:
                 QMessageBox.critical(self, e.__class__.__name__, e.args[0])
             else:
+                print(self.grid.grid_size)
                 Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
                 node = Global_Window_DLL.get_node(self)
                 node.next.data.show()
@@ -135,10 +140,10 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         print(self.grid.puzzle)
 
     def on_click_brute(self):
-
         if self.grid.grid_size["blocks"] > 25:
-            QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
-                                                                  "is disabled!")
+            # QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
+            #                                                       "is disabled!")
+            pass
         else:
             if self.brute_window is None:
                 self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
@@ -184,8 +189,8 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         Global_Window_DLL.delete(temp.data)
 
     def build_grid(self):
-        if self.grid.grid_size["blocks"] > 25:
-            self.pushButtonBrute.setDisabled(True)
+        # if len(self.grid.puzzle) > 25:
+        #     self.pushButtonBrute.setDisabled(True)
 
         for block in self.grid.blocks:
             layout = QGridLayout()
@@ -239,7 +244,12 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
 
         self.labelTime.setText("Background Thread In progress....")
         start = time.time()
-        result = self.solver.solve(self.grid.puzzle, start)
+        for i in range(10):
+            limit = TIME_LIMIT[len(self.grid.puzzle)]
+            result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
+            print("Finished Try", i)
+            if result:
+                break
         end = time.time() - start
         if isinstance(result, list):
             print(result)
