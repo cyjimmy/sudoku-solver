@@ -1,18 +1,21 @@
 import random
+import time
 
 
 class SudokuSolver:
-    def solve(self, board: list):
+    def solve(self, board: list, start_time):
         raise NotImplemented
 
 
 class CSPSolver(SudokuSolver):
-    def solve(self, board: list):
+    def solve(self, board: list, start_time):
         return False
 
 
 class BruteForceSolver(SudokuSolver):
-    def solve(self, board):
+    def solve(self, board, start_time):
+        if time.time() - start_time > 120:
+            return False
         n = len(board)
         #
         empty = self.find_empty(board)
@@ -23,7 +26,7 @@ class BruteForceSolver(SudokuSolver):
         for num in self.get_choices(board, row, col):
             if self.is_valid(board, row, col, num):
                 board[row][col] = num
-                if self.solve(board):
+                if self.solve(board, start_time):
                     return board
                     # return True
                 board[row][col] = 0

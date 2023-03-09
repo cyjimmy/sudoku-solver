@@ -220,13 +220,17 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         self.solver = sudoku_solver
 
     def update_widget(self, result, finished_status, timer):
-        self.labelSolveStatus.setText(str(finished_status))
-        self.labelTime.setText(f"Solved in {round(timer, 6)} sec")
-        self.verticalLayout.removeWidget(self.scroll)
-        self.grid = self.grid.clone(puzzle=result)
-        print("here")
-        print(result)
-        self.__build_grid()
+        if isinstance(result, list):
+            self.labelSolveStatus.setText(str(finished_status))
+            self.labelTime.setText(f"Solved in {round(timer, 6)} sec")
+            self.verticalLayout.removeWidget(self.scroll)
+            self.grid = self.grid.clone(puzzle=result)
+            # print("here")
+            # print(result)
+            self.__build_grid()
+        else:
+            self.labelSolveStatus.setText("Failed to Solve")
+            self.labelTime.setText(f"Failed in {round(timer, 6)} sec")
 
     def solve(self):
         # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
@@ -234,15 +238,12 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         time.sleep(5)
 
         self.labelTime.setText("Background Thread In progress....")
-        if True:
-            start = time.time()
-            result = self.solver.solve(self.grid.puzzle)
-            end = time.time() - start
-            if isinstance(result, list):
-                print(result)
-            return result, end
-        else:
-            pass
+        start = time.time()
+        result = self.solver.solve(self.grid.puzzle, start)
+        end = time.time() - start
+        if isinstance(result, list):
+            print(result)
+        return result, end
 
     def __build_grid(self):
         self.parent_layout = QGridLayout()
