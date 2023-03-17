@@ -140,8 +140,9 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
             QMessageBox.information(self, "Brute Force Disabled", "Sorry, for large puzzles like this, Brute force "
                                                                   "is disabled!")
         else:
-            if self.brute_window is None:
-                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
+            if self.brute_window:
+                self.brute_window.close()
+            self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
 
             self.brute_window.show()
 
@@ -235,7 +236,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
     def solve(self):
         # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
         # # blocking the main thread which I don't even think is possible
-        time.sleep(5)
+        # time.sleep(5)
 
         self.labelTime.setText("Background Thread In progress....")
         start = time.time()
