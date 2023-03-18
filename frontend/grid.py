@@ -129,7 +129,7 @@ class Grid:
 
     def clone(self, puzzle=None):
         if puzzle is None:
-            puzzle = self.puzzle
+            puzzle = [row[:] for row in self.puzzle]
 
         if self.grid_size is None:
             raise ValueError("Error - Grid Size is none can't copy this grid")
