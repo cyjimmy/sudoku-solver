@@ -37,6 +37,11 @@ class CSPSolver(SudokuSolver):
         self._start_time = None
 
     def solve(self, board: list, start_time):
+        """
+        Solve function
+        - entry point of this solve algorithm
+        - call setup functions and the backtracking search function
+        """
         self._reset()
         self._start_time = time.time()
         self._board = board
@@ -64,6 +69,11 @@ class CSPSolver(SudokuSolver):
                     self._assignment[cell] = 0
 
     def _get_initial_domains(self):
+        """
+        Initial pruning
+        - initial assignment of each empty cell's domain
+        - call function _ac_3 to further reduce initial domains
+        """
         for cell in self._empty_cells:
             row = cell.row
             col = cell.col
@@ -73,6 +83,10 @@ class CSPSolver(SudokuSolver):
             self._ac_3(cell)
 
     def _fill_cell(self):
+        """
+        Backtrack search
+        - recursive backtracking
+        """
         if time.time() - self._start_time > SOLVE_TIME_LIMIT:
             return False
         if len(self._empty_cells) == 0:
@@ -101,6 +115,11 @@ class CSPSolver(SudokuSolver):
                 range(col_start, col_start + subgrid_col)]
 
     def _mrv(self):
+        """
+        MRV
+        - selecting cell with the least legal values
+        - call function _degree_heuristic if there is a tie
+        """
         mrv = set()
         min_domain_size = self._size
         for cell in self._empty_cells:
@@ -117,6 +136,11 @@ class CSPSolver(SudokuSolver):
         return self._degree_heuristic(mrv)
 
     def _degree_heuristic(self, mrv):
+        """
+        Degree heuristic
+        - used as tiebreaker for selecting cell, called by function mrv
+        - check which cell has more unassigned related cells (the highest degree)
+        """
         highest_degree = 0
         selected_cell = next(iter(mrv))
         for cell in mrv:
@@ -130,19 +154,30 @@ class CSPSolver(SudokuSolver):
         return selected_cell
 
     def _arrange_value(self, cell):
+        """
+        Least constraining heuristic
+        - check the domain of param cell's neighbor (row, col, grid)
+        - count appearances of each domain value and arrange them in ascending order
+        """
         domains = self._domains[cell]
         if len(domains) == 1:
             return domains
 
         domain_count = Counter()
         domain_count.update(self._domains[cell])
-        for related_cell in self._related_cells[cell]:
-            domain_count.update(self._domains[related_cell])
+        for empty_cell in self._empty_cells:
+            if empty_cell in self._related_cells[cell]:
+                domain_count.update(self._domains[empty_cell])
         sorted_domains = sorted(domain_count.keys(), key=lambda key: domain_count[key])
         domains = [domain for domain in sorted_domains if domain in self._domains[cell]]
         return domains
 
     def _ac_3(self, cell):
+        """
+        AC-3 algorithm
+        - called after each cell assignment
+        - inference with MAC
+        """
         arcs = deque()
         for empty_cell in self._empty_cells:
             if empty_cell in self._related_cells[cell]:
@@ -160,10 +195,12 @@ class CSPSolver(SudokuSolver):
         return True
 
     def _revise(self, cell_i, cell_j):
+        """
+        part of ac-3, revise domains base on constraints
+        """
         i_domains = self._domains[cell_i]
         j_domains = self._domains[cell_j]
         domain_changed = False
-
         if len(j_domains) == 1 and len(i_domains) == 1:
             i_domain = next(iter(i_domains))
             if i_domain in j_domains:
@@ -174,10 +211,15 @@ class CSPSolver(SudokuSolver):
             if j_assignment in i_domains:
                 i_domains.remove(j_assignment)
                 domain_changed = True
-        found_unique = self._find_unique_candidate(cell_i)
-        return domain_changed or found_unique
+        unique_candidate_updated = self._update_unique_candidate(cell_i)
+        return domain_changed or unique_candidate_updated
 
-    def _find_unique_candidate(self, cell):
+    def _update_unique_candidate(self, cell):
+        """
+        Sudoku technique
+        - check if cell is a unique candidate which has a domain value that is unique to neighbor cells
+        - if the cell has a unique domain values which mean it is the only cell that can hold that value
+        """
         i_domains = self._domains[cell]
         domain_changed = False
         related_list = [self._empty_cells_in_grids[cell.grid],
