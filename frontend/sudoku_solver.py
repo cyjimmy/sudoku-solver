@@ -5,8 +5,6 @@ from collections import deque, Counter
 
 from frontend.sudoku_generator import SudokuGenerator
 
-SOLVE_TIME_LIMIT = 10
-
 
 class Cell:
     def __init__(self, row, col, grid):
@@ -16,6 +14,7 @@ class Cell:
 
     def __str__(self):
         return f'({self.row}, {self.col})'
+
 
 SOLVE_TIME_LIMIT = 15
 
@@ -39,7 +38,6 @@ class CSPSolver(SudokuSolver):
         self._start_time = None
 
     def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
-    def solve(self, board: list, start_time):
         """
         Solve function
         - entry point of this solve algorithm
