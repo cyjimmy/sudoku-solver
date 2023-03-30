@@ -1,4 +1,5 @@
 import enum
+import math
 from dataclasses import dataclass
 from math import sqrt, floor
 from typing import TextIO, Dict, Union
@@ -165,14 +166,17 @@ class Grid:
             if line == "":
                 raise InvalidFileDataException(filename)
             try:
-                if ',' in line:
-                    self.__load_with_commas(sudoku_grids, line)
-                elif '.' in line:
-                    self.__load_linearly(sudoku_grids, line)
-                else:
-                    self.__load_column_by_row(sudoku_grids, line)
+                self.__load_with_commas(sudoku_grids, line)
             except IndexError:
                 raise InvalidFileDataException(filename)
+
+    @staticmethod
+    def get_sides(grid_size):
+        size_sqrt: float = int(sqrt(grid_size))
+        if math.isqrt(grid_size) ** 2 == grid_size:
+            return size_sqrt, size_sqrt
+        else:
+            return int(math.floor(grid_size/2)), int(math.ceil(grid_size/2))
 
     def __load_with_commas(self, file_content: TextIO, first_line: str):
         """
@@ -180,63 +184,18 @@ class Grid:
         :param file_content: TextIO
         :param first_line: str
         """
-        side = len(first_line.strip('\n').replace(',', ''))
-        grid_size = side * side
+        grid_size = len(first_line.strip('\n').replace(',', ''))
+        side_first, side_second = self.get_sides(grid_size)
         first_line_values = first_line.strip('\n').split(',')
-        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
-        self.puzzle = [[0] * side for _ in range(side)]
+        self.grid_size = {"blocks": grid_size, "block_rows": side_first, "block_cols": side_second}
+        self.puzzle = [[0] * grid_size for _ in range(grid_size)]
         line = file_content.readline()
-        while line != "" and '=' not in line:
+        while line != "":
             first_line_values += line.strip('\n').split(',')
             line = file_content.readline()
-        block = Block(self.grid_size, 0)
-        block.load(first_line_values, self.puzzle)
-        self.blocks.append(block)
-
-    def __load_linearly(self, file_content: TextIO, first_line: str):
-        """
-        Load sudoku puzzles from a file written in the linear form
-        "4.....8.5.3..........7......2.....6.....8.4......1.......6.3.7.5..2.....1.4......".
-
-        :param file_content: TextIO
-        :param first_line: str
-        """
-        grid_size = len(first_line.strip('\n'))
-        side = floor(sqrt(grid_size))
-        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
-        self.puzzle = [[0] * side for _ in range(side)]
-        first_block = Block(self.grid_size, 0)
-        first_block.load(first_line, self.puzzle)
-        self.blocks.append(first_block)
-
-    def __load_column_by_row(self, file_content: TextIO, first_line):
-        """
-        Load sudoku puzzles from a file in the linear form.
-        "
-        003020600
-        900305001
-        001806400
-        008102900
-        700000008
-        006708200
-        002609500
-        800203009
-        005010300
-        ========
-        "
-
-        :param file_content: TextIO
-        :param first_line: str
-        """
-        first_line = first_line.strip('\n')
-        side = len(first_line)
-        grid_size = side * side
-        self.grid_size = {"blocks": grid_size, "block_rows": side, "block_cols": side}
-        self.puzzle = [[0] * side for _ in range(side)]
-        line = file_content.readline()
-        while line != "" and '=' not in line:
-            first_line += line.strip('\n')
-            line = file_content.readline()
-        block = Block(self.grid_size, 0)
-        block.load(first_line, self.puzzle)
-        self.blocks.append(block)
+        values_index = 0
+        for row in self.puzzle:
+            for i in range(len(row)):
+                row[i] = int(first_line_values[values_index])
+                values_index += 1
+        self.generate()
