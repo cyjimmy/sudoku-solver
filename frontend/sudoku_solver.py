@@ -5,7 +5,7 @@ from collections import deque, Counter
 
 from frontend.sudoku_generator import SudokuGenerator
 
-SOLVE_TIME_LIMIT = 3
+SOLVE_TIME_LIMIT = 20
 
 
 class Cell:
@@ -38,12 +38,12 @@ class CSPSolver(SudokuSolver):
 
     def solve(self, board: list, start_time):
         self._reset()
+        self._start_time = time.time()
         self._board = board
         self._size = len(self._board)
         self._find_empty_cells()
         self._find_related_cells()
         self._get_initial_domains()
-        self._start_time = time.time()
         return self._fill_cell()
 
     def _find_empty_cells(self):
@@ -69,6 +69,8 @@ class CSPSolver(SudokuSolver):
             col = cell.col
             self._domains[cell] = set(range(1, self._size + 1)) - set(self._board[row]) - \
                                   set([row[col] for row in self._board]) - set(self._get_subgrid(row, col))
+        for cell in self._empty_cells:
+            self._ac_3(cell)
 
     def _fill_cell(self):
         if time.time() - self._start_time > SOLVE_TIME_LIMIT:
@@ -152,26 +154,50 @@ class CSPSolver(SudokuSolver):
             if self._revise(cell_i, cell_j):
                 if not self._domains[cell_i]:
                     return False
-                for related_cell in self._related_cells[cell_i]:
-                    if self._assignment[related_cell] != cell_j:
-                        arcs.append((related_cell, cell_i))
+                for empty_cell in self._empty_cells:
+                    if empty_cell != cell_i and empty_cell != cell_j and empty_cell in self._related_cells[cell_i]:
+                        arcs.append((empty_cell, cell_i))
         return True
 
     def _revise(self, cell_i, cell_j):
         i_domains = self._domains[cell_i]
         j_domains = self._domains[cell_j]
+        domain_changed = False
         if not j_domains:
             j_assignment = self._assignment[cell_j]
             if j_assignment in i_domains:
                 i_domains.remove(j_assignment)
-                return True
-
+                domain_changed = True
         if len(j_domains) == 1 and len(i_domains) == 1:
             i_domain = next(iter(i_domains))
             if i_domain in j_domains:
-                self._domains[cell_i].clear()
-                return True
-        return False
+                i_domains.clear()
+                domain_changed = True
+        # TODO: move this to somewhere else?
+        test = self._find_unique_candidate(cell_i)
+        return domain_changed | test
+
+    def _find_unique_candidate(self, cell_i):
+        i_domains = self._domains[cell_i]
+        domain_changed = False
+        related_list = [self._empty_cells_in_grids[cell_i.grid],
+                        self._empty_cells_in_rows[cell_i.row],
+                        self._empty_cells_in_cols[cell_i.col]]
+        # TODO: loop through empty cells instead
+        for related in related_list:
+            if len(i_domains) <= 1:
+                return domain_changed
+            related_domains = set()
+            related_cells = related - {cell_i}
+            for related_cell in related_cells:
+                related_domains = related_domains | self._domains[related_cell]
+            if related_domains:
+                unique_domains = i_domains - related_domains
+                if unique_domains:
+                    self._domains[cell_i] = unique_domains
+                    i_domains = self._domains[cell_i]
+                    domain_changed = True
+        return domain_changed
 
     def _find_related_cells(self):
         self._related_cells = {cell: set() for cell in self._empty_cells}
@@ -388,11 +414,11 @@ if __name__ == "__main__":
     solver1 = BruteForceSolver()
     solver2 = CSPSolver()
     attempts = 100
-    for solver in [solver1, solver2]:
+    for solver in [solver2]:
         success = 0
         total_time = 0
         for n in range(attempts):
-            generator = SudokuGenerator(16)
+            generator = SudokuGenerator(25)
             # puzzle = [row[:] for row in size_16_puzzle]
             puzzle = generator.generate()
             current_time = time.time()
@@ -401,11 +427,11 @@ if __name__ == "__main__":
                 time_elapsed = time.time() - current_time
                 total_time += time_elapsed
                 success += 1
-                solver.recursion_count = 0
-                # print(puzzle)
-                print("SUCCESS!!!")
+                # print_board(solution)
+                print("Success")
             else:
                 print("FAIL!!!")
-                # print(puzzle)
+
         print(f"Success rate: {success / attempts}")
-        print(f"Average time: {total_time / success}")
+        if success:
+            print(f"Average time: {total_time / success}")
