@@ -17,9 +17,11 @@ class Cell:
     def __str__(self):
         return f'({self.row}, {self.col})'
 
+SOLVE_TIME_LIMIT = 15
+
 
 class SudokuSolver:
-    def solve(self, board: list, start_time):
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         raise NotImplemented
 
 
@@ -36,6 +38,7 @@ class CSPSolver(SudokuSolver):
         self._assignment = {}
         self._start_time = None
 
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
     def solve(self, board: list, start_time):
         """
         Solve function
@@ -260,11 +263,10 @@ class CSPSolver(SudokuSolver):
 
 
 class BruteForceSolver(SudokuSolver):
-    def solve(self, board, start_time):
-        if time.time() - start_time > SOLVE_TIME_LIMIT:
+    def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        if time.time() - start_time > limit:
             return False
         n = len(board)
-        #
         empty = self.find_empty(board)
         if not empty:
             return board
