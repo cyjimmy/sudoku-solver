@@ -145,8 +145,9 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
             #                                                       "is disabled!")
             pass
         else:
-            if self.brute_window is None:
-                self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
+            if self.brute_window:
+                self.brute_window.close()
+            self.brute_window = SolverWindow(self.grid.clone(), "Brute Force/Heuristic", BruteForceSolver())
 
             self.brute_window.show()
 
@@ -162,10 +163,24 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         print(worker.result)
         self.brute_window.update_widget(worker.result, worker.finished_status, worker.timer)
 
+    def grid_solved_csp(self, worker):
+        print(worker.result)
+        self.csp_window.update_widget(worker.result, worker.finished_status, worker.timer)
+
     def on_click_csp(self):
-        if self.csp_window is None:
-            self.csp_window = SolverWindow(self.grid.clone(), "CSP", CSPSolver())
+        if self.csp_window:
+            self.csp_window.close()
+        self.csp_window = SolverWindow(self.grid.clone(), "CSP", CSPSolver())
+
         self.csp_window.show()
+
+        self.csp_worker = Worker(self.csp_window.solve)
+        self.csp_worker.setAutoDelete(True)
+        self.csp_worker.signals.finished.connect(partial(self.grid_solved_csp, self.csp_worker))
+
+        self.csp_threadpool = QThreadPool()
+        self.csp_threadpool.setMaxThreadCount(1)
+        self.csp_threadpool.start(self.csp_worker)
 
     def on_click_go_back(self):
         node = Global_Window_DLL.get_node(self)
@@ -230,8 +245,6 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
             self.labelTime.setText(f"Solved in {round(timer, 6)} sec")
             self.verticalLayout.removeWidget(self.scroll)
             self.grid = self.grid.clone(puzzle=result)
-            # print("here")
-            # print(result)
             self.__build_grid()
         else:
             self.labelSolveStatus.setText("Failed to Solve")
@@ -240,7 +253,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
     def solve(self):
         # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
         # # blocking the main thread which I don't even think is possible
-        time.sleep(5)
+        time.sleep(0.5)
 
         self.labelTime.setText("Background Thread In progress....")
         start = time.time()
