@@ -1,8 +1,5 @@
-# comp3981_sudoku_project
-Solve sudoku using some algorithm (ง︡'-'︠)ง
-
-./frontend = ui
-./backend = algorithms
+# COMP3981 Sudoku Solver
+Solve sudoku using some algorithms (ง︡'-'︠)ง
 
 ## How To Run
 1. Install Python version 3.10
@@ -10,7 +7,7 @@ Solve sudoku using some algorithm (ง︡'-'︠)ง
 ```buildoutcfg
 pip install -r requirements.txt
 ```
-3. Run the driver.py file
+3. Run the /frontend/driver.py file
 
 ## Sudoku Solving Algorithms
 #### Algorithm File Location
