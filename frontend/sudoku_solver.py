@@ -5,8 +5,6 @@ from collections import deque, Counter
 
 from frontend.sudoku_generator import SudokuGenerator
 
-SOLVE_TIME_LIMIT = 3
-
 
 class Cell:
     def __init__(self, row, col, grid):
@@ -18,8 +16,11 @@ class Cell:
         return f'({self.row}, {self.col})'
 
 
+SOLVE_TIME_LIMIT = 15
+
+
 class SudokuSolver:
-    def solve(self, board: list, start_time):
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         raise NotImplemented
 
 
@@ -36,14 +37,19 @@ class CSPSolver(SudokuSolver):
         self._assignment = {}
         self._start_time = None
 
-    def solve(self, board: list, start_time):
+    def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
+        """
+        Solve function
+        - entry point of this solve algorithm
+        - call setup functions and the backtracking search function
+        """
         self._reset()
+        self._start_time = time.time()
         self._board = board
         self._size = len(self._board)
         self._find_empty_cells()
         self._find_related_cells()
         self._get_initial_domains()
-        self._start_time = time.time()
         return self._fill_cell()
 
     def _find_empty_cells(self):
@@ -64,13 +70,24 @@ class CSPSolver(SudokuSolver):
                     self._assignment[cell] = 0
 
     def _get_initial_domains(self):
+        """
+        Initial pruning
+        - initial assignment of each empty cell's domain
+        - call function _ac_3 to further reduce initial domains
+        """
         for cell in self._empty_cells:
             row = cell.row
             col = cell.col
             self._domains[cell] = set(range(1, self._size + 1)) - set(self._board[row]) - \
                                   set([row[col] for row in self._board]) - set(self._get_subgrid(row, col))
+        for cell in self._empty_cells:
+            self._ac_3(cell)
 
     def _fill_cell(self):
+        """
+        Backtrack search
+        - recursive backtracking
+        """
         if time.time() - self._start_time > SOLVE_TIME_LIMIT:
             return False
         if len(self._empty_cells) == 0:
@@ -99,6 +116,11 @@ class CSPSolver(SudokuSolver):
                 range(col_start, col_start + subgrid_col)]
 
     def _mrv(self):
+        """
+        MRV
+        - selecting cell with the least legal values
+        - call function _degree_heuristic if there is a tie
+        """
         mrv = set()
         min_domain_size = self._size
         for cell in self._empty_cells:
@@ -115,6 +137,11 @@ class CSPSolver(SudokuSolver):
         return self._degree_heuristic(mrv)
 
     def _degree_heuristic(self, mrv):
+        """
+        Degree heuristic
+        - used as tiebreaker for selecting cell, called by function mrv
+        - check which cell has more unassigned related cells (the highest degree)
+        """
         highest_degree = 0
         selected_cell = next(iter(mrv))
         for cell in mrv:
@@ -128,23 +155,34 @@ class CSPSolver(SudokuSolver):
         return selected_cell
 
     def _arrange_value(self, cell):
+        """
+        Least constraining heuristic
+        - check the domain of param cell's neighbor (row, col, grid)
+        - count appearances of each domain value and arrange them in ascending order
+        """
         domains = self._domains[cell]
         if len(domains) == 1:
             return domains
 
         domain_count = Counter()
         domain_count.update(self._domains[cell])
-        for related_cell in self._related_cells[cell]:
-            domain_count.update(self._domains[related_cell])
+        for empty_cell in self._empty_cells:
+            if empty_cell in self._related_cells[cell]:
+                domain_count.update(self._domains[empty_cell])
         sorted_domains = sorted(domain_count.keys(), key=lambda key: domain_count[key])
         domains = [domain for domain in sorted_domains if domain in self._domains[cell]]
         return domains
 
     def _ac_3(self, cell):
+        """
+        AC-3 algorithm
+        - called after each cell assignment
+        - inference with MAC
+        """
         arcs = deque()
-        for related_cell in self._related_cells[cell]:
-            if self._assignment[related_cell] == 0:
-                arcs.append((related_cell, cell))
+        for empty_cell in self._empty_cells:
+            if empty_cell in self._related_cells[cell]:
+                arcs.append((empty_cell, cell))
         while arcs:
             arc = arcs.popleft()
             cell_i = arc[0]
@@ -152,26 +190,55 @@ class CSPSolver(SudokuSolver):
             if self._revise(cell_i, cell_j):
                 if not self._domains[cell_i]:
                     return False
-                for related_cell in self._related_cells[cell_i]:
-                    if self._assignment[related_cell] != cell_j:
-                        arcs.append((related_cell, cell_i))
+                for empty_cell in self._empty_cells:
+                    if empty_cell != cell_i and empty_cell != cell_j and empty_cell in self._related_cells[cell_i]:
+                        arcs.append((empty_cell, cell_i))
         return True
 
     def _revise(self, cell_i, cell_j):
+        """
+        part of ac-3, revise domains base on constraints
+        """
         i_domains = self._domains[cell_i]
         j_domains = self._domains[cell_j]
-        if not j_domains:
-            j_assignment = self._assignment[cell_j]
-            if j_assignment in i_domains:
-                i_domains.remove(j_assignment)
-                return True
-
+        domain_changed = False
         if len(j_domains) == 1 and len(i_domains) == 1:
             i_domain = next(iter(i_domains))
             if i_domain in j_domains:
-                self._domains[cell_i].clear()
-                return True
-        return False
+                i_domains.clear()
+                domain_changed = True
+        elif not j_domains:
+            j_assignment = self._assignment[cell_j]
+            if j_assignment in i_domains:
+                i_domains.remove(j_assignment)
+                domain_changed = True
+        unique_candidate_updated = self._update_unique_candidate(cell_i)
+        return domain_changed or unique_candidate_updated
+
+    def _update_unique_candidate(self, cell):
+        """
+        Sudoku technique
+        - check if cell is a unique candidate which has a domain value that is unique to neighbor cells
+        - if the cell has a unique domain values which mean it is the only cell that can hold that value
+        """
+        i_domains = self._domains[cell]
+        domain_changed = False
+        related_list = [self._empty_cells_in_grids[cell.grid],
+                        self._empty_cells_in_rows[cell.row],
+                        self._empty_cells_in_cols[cell.col]]
+        for related in related_list:
+            if len(i_domains) <= 1:
+                return domain_changed
+
+            related_domains = set()
+            related_cells = related - {cell}
+            for related_cell in related_cells:
+                related_domains.update(self._domains[related_cell])
+            if related_domains:
+                unique_domains = i_domains - related_domains
+                if unique_domains:
+                    self._domains[cell] = unique_domains
+                    domain_changed = True
 
     def _find_related_cells(self):
         self._related_cells = {cell: set() for cell in self._empty_cells}
@@ -194,11 +261,10 @@ class CSPSolver(SudokuSolver):
 
 
 class BruteForceSolver(SudokuSolver):
-    def solve(self, board, start_time):
-        if time.time() - start_time > SOLVE_TIME_LIMIT:
+    def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        if time.time() - start_time > limit:
             return False
         n = len(board)
-        #
         empty = self.find_empty(board)
         if not empty:
             return board
@@ -275,11 +341,13 @@ class BruteForceSolver(SudokuSolver):
         return True
 
     def get_subgrid(self, board, row, col):
-        subgrid_size = int(len(board) ** 0.5)
-        row_start = (row // subgrid_size) * subgrid_size
-        col_start = (col // subgrid_size) * subgrid_size
-        return [board[i][j] for i in range(row_start, row_start + subgrid_size) for j in
-                range(col_start, col_start + subgrid_size)]
+        size = len(board)
+        subgrid_row = math.floor(size ** 0.5)
+        subgrid_col = size // subgrid_row
+        row_start = (row // subgrid_row) * subgrid_row
+        col_start = (col // subgrid_col) * subgrid_col
+        return [board[i][j] for i in range(row_start, row_start + subgrid_row) for j in
+                range(col_start, col_start + subgrid_col)]
 
 
 def print_board(board):
@@ -289,24 +357,7 @@ def print_board(board):
         print()
 
 
-size_16_puzzle = [[0, 0, 0, 5, 0, 0, 1, 12, 0, 0, 0, 8, 0, 0, 15, 0],
-                  [0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 15, 0, 0, 5, 0, 0],
-                  [0, 1, 9, 6, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14],
-                  [0, 0, 0, 0, 7, 0, 0, 0, 0, 1, 5, 0, 0, 0, 0, 0],
-                  [10, 0, 6, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0],
-                  [0, 9, 0, 0, 0, 3, 0, 0, 0, 0, 0, 13, 14, 0, 1, 0],
-                  [0, 0, 0, 15, 11, 1, 0, 0, 0, 3, 0, 9, 0, 0, 0, 0],
-                  [1, 0, 13, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0],
-                  [0, 16, 0, 0, 10, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0],
-                  [6, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 9, 0],
-                  [0, 0, 15, 0, 4, 12, 0, 0, 0, 0, 0, 0, 16, 2, 0, 1],
-                  [15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                  [0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 7, 11, 0, 0, 0, 0],
-                  [0, 0, 0, 10, 12, 0, 14, 0, 9, 0, 0, 5, 0, 11, 0, 0],
-                  [16, 5, 11, 0, 0, 0, 6, 7, 0, 0, 0, 1, 0, 0, 0, 0]]
-
-size_25_puzzle_1 = [[0, 15, 0, 2, 1, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+size_25_puzzle = [[0, 15, 0, 2, 1, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     [0, 0, 14, 24, 0, 11, 0, 23, 1, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 12, 0, 2, 0, 0],
                     [0, 0, 7, 10, 0, 0, 0, 22, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 8, 9, 0, 0, 0, 0, 0],
                     [12, 0, 0, 0, 0, 0, 6, 0, 0, 0, 14, 0, 21, 24, 0, 1, 0, 0, 0, 0, 0, 0, 8, 0, 23],
@@ -332,68 +383,15 @@ size_25_puzzle_1 = [[0, 15, 0, 2, 1, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
                     [8, 0, 0, 0, 7, 13, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 1, 0, 12, 11, 0, 2],
                     [0, 16, 0, 0, 0, 0, 0, 10, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 23, 5, 0]]
 
-size_25_puzzle_2 = [[0, 0, 0, 0, 0, 9, 22, 0, 10, 4, 12, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0],
-                    [0, 0, 0, 0, 0, 16, 17, 0, 18, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0],
-                    [14, 0, 0, 0, 0, 1, 0, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 17],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 21, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [11, 12, 0, 0, 23, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 4, 0, 0, 0, 0, 0, 2, 0, 22, 25],
-                    [2, 0, 0, 0, 4, 0, 18, 22, 0, 19, 0, 0, 0, 0, 7, 13, 0, 0, 0, 0, 20, 0, 0, 0, 8],
-                    [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 20, 0, 0, 0, 0, 21, 10, 11],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 9, 8, 0, 11, 0, 0, 0, 19, 0, 17, 0, 3, 12],
-                    [7, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 3, 0, 0, 0, 19, 0, 0, 0],
-                    [0, 0, 0, 0, 18, 0, 0, 8, 0, 0, 0, 0, 19, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0],
-                    [9, 0, 0, 1, 3, 0, 0, 0, 14, 13, 25, 0, 0, 0, 6, 0, 0, 21, 0, 0, 0, 0, 0, 0, 5],
-                    [0, 0, 0, 0, 0, 0, 23, 2, 3, 16, 0, 14, 0, 20, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 7],
-                    [0, 0, 0, 12, 0, 0, 0, 0, 0, 7, 0, 15, 0, 0, 13, 0, 17, 25, 0, 0, 18, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 20, 0, 6, 0, 0, 0, 1, 0, 0, 0, 15, 0, 0, 11, 16, 0, 0, 0, 19, 9],
-                    [0, 14, 23, 0, 0, 0, 10, 0, 0, 0, 5, 7, 0, 17, 0, 0, 3, 0, 20, 0, 0, 0, 0, 13, 16],
-                    [0, 0, 0, 2, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0],
-                    [0, 0, 19, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 21, 0, 0, 6],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 19, 0, 0, 0, 22, 0, 0, 18],
-                    [15, 24, 0, 5, 0, 0, 0, 7, 17, 0, 14, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 13, 11, 25, 20],
-                    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 17, 0, 5, 13, 0, 0, 6, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0],
-                    [13, 0, 11, 0, 0, 0, 0, 0, 24, 2, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 22],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 24, 0, 2, 0, 25, 0, 0, 0, 10, 0, 0, 0, 0],
-                    [0, 0, 0, 16, 0, 0, 4, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0],
-                    [23, 18, 0, 0, 12, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 9, 0, 13, 0, 0, 0, 0, 0, 0, 2]]
-
-size_25_puzzle_3 = [[0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 20, 0, 5, 0, 0, 0],
-                    [0, 0, 0, 0, 20, 0, 0, 17, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 3, 0, 10, 0, 0, 0],
-                    [0, 14, 0, 23, 24, 25, 0, 6, 0, 0, 0, 0, 0, 4, 0, 2, 0, 0, 21, 0, 11, 0, 0, 8, 0],
-                    [0, 8, 0, 0, 12, 0, 0, 13, 14, 0, 25, 0, 0, 0, 21, 0, 5, 0, 0, 24, 0, 0, 0, 0, 20],
-                    [0, 0, 0, 0, 0, 6, 0, 0, 0, 4, 0, 0, 0, 20, 5, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0],
-                    [0, 0, 9, 0, 6, 0, 0, 8, 3, 0, 0, 25, 0, 0, 0, 15, 0, 0, 0, 5, 19, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0],
-                    [4, 22, 8, 0, 0, 20, 24, 5, 0, 0, 16, 3, 0, 0, 0, 0, 0, 0, 0, 6, 0, 23, 0, 25, 0],
-                    [18, 25, 0, 0, 0, 0, 7, 0, 19, 14, 0, 0, 0, 0, 0, 3, 0, 0, 9, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0, 17, 0, 0, 3, 0, 0, 0, 15, 0, 22, 0, 0, 4, 0, 16, 0, 0, 0, 0],
-                    [12, 7, 16, 5, 0, 2, 18, 1, 9, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 25, 19, 0, 0],
-                    [0, 0, 0, 0, 0, 7, 0, 0, 8, 5, 0, 6, 0, 12, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, 15],
-                    [0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0],
-                    [0, 15, 19, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0, 9, 0, 0, 24, 0, 0, 0, 0],
-                    [0, 23, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 10, 7, 0, 20, 0, 0, 0, 0, 0, 0, 16],
-                    [0, 0, 0, 12, 0, 0, 8, 20, 0, 2, 0, 0, 0, 7, 23, 0, 0, 0, 0, 0, 0, 3, 0, 0, 5],
-                    [0, 9, 0, 0, 0, 0, 25, 0, 0, 17, 0, 0, 0, 0, 0, 16, 0, 0, 8, 15, 0, 0, 0, 12, 0],
-                    [0, 17, 5, 0, 0, 9, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 21, 0],
-                    [0, 0, 15, 0, 0, 21, 5, 0, 24, 23, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    [0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0, 0, 21],
-                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 16, 0, 0, 0, 0, 0, 0, 4],
-                    [0, 12, 23, 0, 0, 0, 0, 0, 20, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0],
-                    [0, 21, 0, 25, 0, 8, 0, 0, 0, 22, 4, 11, 0, 0, 0, 0, 0, 0, 0, 1, 12, 0, 7, 0, 0],
-                    [0, 0, 0, 0, 18, 0, 0, 4, 5, 7, 0, 0, 9, 0, 0, 0, 22, 6, 0, 0, 0, 0, 0, 0, 0]]
-
 if __name__ == "__main__":
     solver1 = BruteForceSolver()
     solver2 = CSPSolver()
     attempts = 100
-    for solver in [solver1, solver2]:
+    for solver in [solver2]:
         success = 0
         total_time = 0
         for n in range(attempts):
             generator = SudokuGenerator(16)
-            # puzzle = [row[:] for row in size_16_puzzle]
             puzzle = generator.generate()
             current_time = time.time()
             solution = solver.solve(puzzle, current_time)
@@ -401,11 +399,11 @@ if __name__ == "__main__":
                 time_elapsed = time.time() - current_time
                 total_time += time_elapsed
                 success += 1
-                solver.recursion_count = 0
-                # print(puzzle)
-                print("SUCCESS!!!")
+                # print_board(solution)
+                print("Success")
             else:
                 print("FAIL!!!")
-                # print(puzzle)
+
         print(f"Success rate: {success / attempts}")
-        print(f"Average time: {total_time / success}")
+        if success:
+            print(f"Average time: {total_time / success}")

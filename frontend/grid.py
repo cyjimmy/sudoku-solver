@@ -154,6 +154,9 @@ class Grid:
         #     for cell in block.cells:
         #         print(f"{cell.row}, {cell.col}")
 
+    def _set_puzzle(self):
+        self.puzzle = []
+
     def load(self, filename):
         """
         Load all sudoku puzzles in the given file if it's valid
@@ -169,6 +172,7 @@ class Grid:
                 self.__load_with_commas(sudoku_grids, line)
             except IndexError:
                 raise InvalidFileDataException(filename)
+        self._set_puzzle()
 
     @staticmethod
     def get_sides(grid_size):
