@@ -250,7 +250,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
     def solve(self):
         # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
         # # blocking the main thread which I don't even think is possible
-        time.sleep(1)
+        time.sleep(0.5)
 
         self.labelTime.setText("Background Thread In progress....")
         start = time.time()
