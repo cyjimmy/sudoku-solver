@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ## Sudoku Solving Algorithms
 #### Algorithm File Location
 ```buildoutcfg
-frontend/sudoku_solver.py
+/frontend/sudoku_solver.py
 ```
 ### Brute Force
 1. The algorithm will try and find a cell with the least amount of possible options.

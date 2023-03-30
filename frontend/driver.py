@@ -240,8 +240,6 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
             self.labelTime.setText(f"Solved in {round(timer, 6)} sec")
             self.verticalLayout.removeWidget(self.scroll)
             self.grid = self.grid.clone(puzzle=result)
-            # print("here")
-            # print(result)
             self.__build_grid()
         else:
             self.labelSolveStatus.setText("Failed to Solve")
