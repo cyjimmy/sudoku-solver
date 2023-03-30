@@ -5,7 +5,7 @@ from collections import deque, Counter
 
 from frontend.sudoku_generator import SudokuGenerator
 
-SOLVE_TIME_LIMIT = 5
+SOLVE_TIME_LIMIT = 10
 
 
 class Cell:
@@ -144,9 +144,9 @@ class CSPSolver(SudokuSolver):
 
     def _ac_3(self, cell):
         arcs = deque()
-        for related_cell in self._related_cells[cell]:
-            if self._assignment[related_cell] == 0:
-                arcs.append((related_cell, cell))
+        for empty_cell in self._empty_cells:
+            if empty_cell in self._related_cells[cell]:
+                arcs.append((empty_cell, cell))
         while arcs:
             arc = arcs.popleft()
             cell_i = arc[0]
@@ -163,41 +163,39 @@ class CSPSolver(SudokuSolver):
         i_domains = self._domains[cell_i]
         j_domains = self._domains[cell_j]
         domain_changed = False
-        if not j_domains:
-            j_assignment = self._assignment[cell_j]
-            if j_assignment in i_domains:
-                i_domains.remove(j_assignment)
-                domain_changed = True
+
         if len(j_domains) == 1 and len(i_domains) == 1:
             i_domain = next(iter(i_domains))
             if i_domain in j_domains:
                 i_domains.clear()
                 domain_changed = True
-        # TODO: move this to somewhere else?
-        test = self._find_unique_candidate(cell_i)
-        return domain_changed | test
+        elif not j_domains:
+            j_assignment = self._assignment[cell_j]
+            if j_assignment in i_domains:
+                i_domains.remove(j_assignment)
+                domain_changed = True
+        found_unique = self._find_unique_candidate(cell_i)
+        return domain_changed or found_unique
 
-    def _find_unique_candidate(self, cell_i):
-        i_domains = self._domains[cell_i]
+    def _find_unique_candidate(self, cell):
+        i_domains = self._domains[cell]
         domain_changed = False
-        related_list = [self._empty_cells_in_grids[cell_i.grid],
-                        self._empty_cells_in_rows[cell_i.row],
-                        self._empty_cells_in_cols[cell_i.col]]
-        # TODO: loop through empty cells instead
+        related_list = [self._empty_cells_in_grids[cell.grid],
+                        self._empty_cells_in_rows[cell.row],
+                        self._empty_cells_in_cols[cell.col]]
         for related in related_list:
             if len(i_domains) <= 1:
                 return domain_changed
+
             related_domains = set()
-            related_cells = related - {cell_i}
+            related_cells = related - {cell}
             for related_cell in related_cells:
-                related_domains = related_domains | self._domains[related_cell]
+                related_domains.update(self._domains[related_cell])
             if related_domains:
                 unique_domains = i_domains - related_domains
                 if unique_domains:
-                    self._domains[cell_i] = unique_domains
-                    i_domains = self._domains[cell_i]
+                    self._domains[cell] = unique_domains
                     domain_changed = True
-        return domain_changed
 
     def _find_related_cells(self):
         self._related_cells = {cell: set() for cell in self._empty_cells}
