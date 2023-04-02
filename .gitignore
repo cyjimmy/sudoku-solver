@@ -121,3 +121,7 @@ venv.bak/
 # project specific
 data.txt
 temp.*
+
+build
+dist
+*.spec
