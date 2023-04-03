@@ -1,8 +1,6 @@
 import sys
 import time
 from functools import partial
-import threading
-from threading import Semaphore, Thread
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThreadPool
@@ -298,5 +296,5 @@ class Driver:
 
         self.app.exec()
 
-
-d = Driver()
+if __name__=="__main__":
+    d = Driver()

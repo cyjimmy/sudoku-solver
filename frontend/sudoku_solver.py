@@ -3,7 +3,7 @@ import random
 import time
 from collections import deque, Counter
 
-from frontend.sudoku_generator import SudokuGenerator
+from sudoku_generator import SudokuGenerator
 
 
 class Cell:

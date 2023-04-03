@@ -125,3 +125,4 @@ temp.*
 build
 dist
 *.spec
+Anaconda-latest-Linux-x86_64.sh
