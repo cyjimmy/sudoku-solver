@@ -265,20 +265,31 @@ class CSPSolver(SudokuSolver):
 
 class BruteForceSolver(SudokuSolver):
     def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        # Check the if the current time is past the timeout limit set
         if time.time() - start_time > limit:
             return False
         n = len(board)
+
+        # Find an emtpy cell on the board with the least amount possible values
         empty = self.find_empty(board)
+
+        # If no empty cells are found then board is solved so return.
         if not empty:
             return board
-            # return True
         row, col = empty
+
+        # Go through each possible choice for the cell given from above.
         for num in self.get_choices(board, row, col):
+            # Check if the value is valid for the position.
             if self.is_valid(board, row, col, num):
+                # If value is valid then set it.
                 board[row][col] = num
+
+                # Recursively call this function to solve the board
                 if self.solve(board, start_time):
                     return board
-                    # return True
+
+                # Reset the value back to zero is no solution is found
                 board[row][col] = 0
         return False
 
