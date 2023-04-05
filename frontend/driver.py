@@ -22,6 +22,7 @@ from worker import Worker
 Global_Window_DLL = dll.DoublyLinkedList()
 
 TIME_LIMIT = {9: 10, 12: 15, 16: 16, 25: 160}
+CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 3}
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -76,7 +77,7 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
             except custom_exceptions.InvalidFileDataException as e:
                 QMessageBox.critical(self, e.__class__.__name__, e.args[0])
             else:
-                print(self.grid.grid_size)
+                # print(self.grid.grid_size)
                 Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
                 node = Global_Window_DLL.get_node(self)
                 node.next.data.show()
@@ -136,8 +137,8 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
         self.brute_threadpool = None
         self.csp_threadpool = None
-        print(self.grid)
-        print(self.grid.puzzle)
+        # print(self.grid)
+        # print(self.grid.puzzle)
 
     def on_click_brute(self):
         if self.grid.grid_size["blocks"] > 25:
@@ -257,8 +258,10 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
 
         self.labelTime.setText("Background Thread In progress....")
         start = time.time()
+        limit = TIME_LIMIT[len(self.grid.puzzle)]
+        if isinstance(self.solver, CSPSolver):
+            limit = CSP_TIME_LIMIT[len(self.grid.puzzle)]
         for i in range(10):
-            limit = TIME_LIMIT[len(self.grid.puzzle)]
             result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
             print("Finished Try", i)
             if result:
