@@ -10,6 +10,9 @@ SOLVE_TIME_LIMIT = 15
 
 
 class Cell:
+    """
+    Cell class that store thr row, column and grid info.
+    """
     def __init__(self, row, col, grid):
         self.row = row
         self.col = col
@@ -41,7 +44,7 @@ class CSPSolver(SudokuSolver):
     def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         """
         Solve function
-        - entry point of this solve algorithm
+        - entry point of csp algorithm
         - call setup functions and the backtracking search function
         """
         self._reset()
@@ -55,6 +58,9 @@ class CSPSolver(SudokuSolver):
         return self._fill_cell()
 
     def _find_empty_cells(self):
+        """
+        Backtracking search
+        """
         self._empty_cells_in_rows = {row: set() for row in range(self._size)}
         self._empty_cells_in_cols = {col: set() for col in range(self._size)}
         self._empty_cells_in_grids = {grid: set() for grid in range(self._size)}
