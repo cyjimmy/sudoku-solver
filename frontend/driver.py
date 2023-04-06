@@ -1,8 +1,7 @@
+import multiprocessing
 import sys
 import time
 from functools import partial
-import threading
-from threading import Semaphore, Thread
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import QThreadPool
@@ -16,13 +15,13 @@ import loadedsudokuwindow
 import mainwindow
 import solver
 from grid import Grid, GridSize
-from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver
+from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver, CSPMultiProcessHandler
 from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
-TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30}
-CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 10}
+TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30, 100: 30}
+CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 3, 100: 3}
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -252,17 +251,23 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
             self.labelTime.setText(f"Failed in {round(timer, 6)} sec")
 
     def solve(self):
-        # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
-        # # blocking the main thread which I don't even think is possible
         time.sleep(0.5)
 
         self.labelTime.setText("Background Thread In progress....")
+        size = len(self.grid.puzzle)
         start = time.time()
-        limit = TIME_LIMIT[len(self.grid.puzzle)]
+        limit = TIME_LIMIT[size]
         if isinstance(self.solver, CSPSolver):
-            limit = CSP_TIME_LIMIT[len(self.grid.puzzle)]
+            limit = CSP_TIME_LIMIT[size]
         for i in range(10):
-            result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
+            if isinstance(self.solver, CSPSolver) and size > 16:
+                limit = limit + i
+                if i == 9:
+                    limit = 100
+                result = CSPMultiProcessHandler().process_pool_handler(self.grid.puzzle, limit)
+                print(time.time() - start)
+            else:
+                result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
             print("Finished Try", i, "with time limit", limit)
             if result:
                 break
@@ -302,4 +307,6 @@ class Driver:
         self.app.exec()
 
 
-d = Driver()
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
+    d = Driver()
