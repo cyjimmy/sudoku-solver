@@ -316,17 +316,15 @@ class BruteForceSolver(SudokuSolver):
 
         # Go through each possible choice for the cell given from above.
         for num in self.get_choices(board, row, col):
-            # Check if the value is valid for the position.
-            if self.is_valid(board, row, col, num):
-                # If value is valid then set it.
-                board[row][col] = num
+            # If value is valid then set it.
+            board[row][col] = num
 
-                # Recursively call this function to solve the board
-                if self.solve(board, start_time):
-                    return board
+            # Recursively call this function to solve the board
+            if self.solve(board, start_time):
+                return board
 
-                # Reset the value back to zero is no solution is found
-                board[row][col] = 0
+            # Reset the value back to zero is no solution is found
+            board[row][col] = 0
         return False
 
     def fill_naked_single(self, board):
