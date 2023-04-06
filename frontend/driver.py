@@ -22,7 +22,7 @@ Global_Window_DLL = dll.DoublyLinkedList()
 
 
 TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30, 100: 30}
-CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 3, 100: 3}
+CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 2, 25: 5, 100: 5}
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -260,11 +260,12 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         limit = TIME_LIMIT[size]
         if isinstance(self.solver, CSPSolver):
             limit = CSP_TIME_LIMIT[size]
-        for i in range(15):
-            if isinstance(self.solver, CSPSolver) and size > 16:
-                limit = limit + i
-                if i == 9:
-                    limit = 100
+        for i in range(10):
+            if isinstance(self.solver, CSPSolver) and size > 12:
+                if i > 1 and size == 25:
+                    limit = 30
+                if i > 4 and size == 16:
+                    limit = 20
                 result = CSPMultiProcessHandler().process_pool_handler(self.grid.puzzle, limit)
                 print(time.time() - start)
             else:
