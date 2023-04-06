@@ -9,15 +9,11 @@ RUN apt-get update -y && \
     '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev \
     libxkbcommon-dev libxkbcommon-x11-dev libxcb-xinerama0 -y
 
-#RUN wget "https://repo.continuum.io/archive/Anaconda3-2023.03-Linux-x86_64.sh" -O "Anaconda-latest-Linux-x86_64.sh" && \
-#    bash Anaconda-latest-Linux-x86_64.sh -b -p ~/anaconda3
-
-COPY . .
-
-RUN bash Anaconda-latest-Linux-x86_64.sh -b -p ~/anaconda3 && \
+RUN wget "https://repo.continuum.io/archive/Anaconda3-2023.03-Linux-x86_64.sh" -O "Anaconda-latest-Linux-x86_64.sh" && \
+    bash Anaconda-latest-Linux-x86_64.sh -b -p ~/anaconda3 && \
     ~/anaconda3/bin/conda init bash
 
-#CMD ["app"]
+COPY . .
 
 ENTRYPOINT ["make", "app"]
 

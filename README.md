@@ -26,3 +26,6 @@ Once the timeout is reached, the algorithm will retry from the start again in ho
 solution by selecting a different random value for the first cell.
 
 ### CSP
+
+### Infrastructure Overview
+![alt text](https://github.com/Miniature-Pug/comp3981_sudoku_project/blob/main/aws_infrastructure.png?raw=true)
