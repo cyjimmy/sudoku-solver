@@ -21,7 +21,7 @@ from worker import Worker
 Global_Window_DLL = dll.DoublyLinkedList()
 
 
-TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30, 100: 30}
+TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 45, 100: 30}
 CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 2, 25: 5, 100: 5}
 
 
