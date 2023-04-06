@@ -25,3 +25,10 @@ ENTRYPOINT ["make", "app"]
 # xhost +local:docker
 # $ docker build -t gui .
 # docker run -i -t -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw gui
+# sudo aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 598490276344.dkr.ecr.us-east-1.amazonaws.com
+# sudo systemctl enable docker
+# sudo systemctl start docker
+# sudo docker pull 598490276344.dkr.ecr.us-east-1.amazonaws.com/sudoku-solver:latest
+# sudo docker run -i -t -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw 598490276344.dkr.ecr.us-east-1.amazonaws.com/sudoku-solver:latest
+
+
