@@ -1,9 +1,12 @@
+import copy
 import math
+import multiprocessing
 import random
 import time
 from collections import deque, Counter
-
 from frontend.sudoku_generator import SudokuGenerator
+
+SOLVE_TIME_LIMIT = 15
 
 
 class Cell:
@@ -14,9 +17,6 @@ class Cell:
 
     def __str__(self):
         return f'({self.row}, {self.col})'
-
-
-SOLVE_TIME_LIMIT = 15
 
 
 class SudokuSolver:
@@ -81,8 +81,6 @@ class CSPSolver(SudokuSolver):
             col = cell.col
             self._domains[cell] = set(range(1, self._size + 1)) - set(self._board[row]) - \
                                   set([row[col] for row in self._board]) - set(self._get_subgrid(row, col))
-        # for cell in self._empty_cells:
-        #     self._ac_3(cell)
 
     def _fill_cell(self):
         """
@@ -261,6 +259,44 @@ class CSPSolver(SudokuSolver):
         self._related_cells = {}
         self._assignment = {}
         self._start_time = None
+
+
+class CSPMultiProcessHandler:
+    @staticmethod
+    def solver_worker(index, puzzle, result_event, results_queue, limit):
+        """
+        Function called by each process during multiprocessing. Tries to solve the given puzzle using CSPSolver.
+        """
+        print(f"Process {index} started ...")
+        result = CSPSolver().solve(puzzle, time.time(), limit)
+        if result:
+            results_queue.put(result)
+            result_event.set()
+            print(f"Process {index} found a solution !!!")
+            return
+        result_event.set()
+
+    @staticmethod
+    def process_pool_handler(puzzle, limit):
+        """
+        Function called by each process during multiprocessing. Tries to solve the given puzzle using CSPSolver.
+        """
+        start = time.time()
+        result_event = multiprocessing.Event()
+        results_queue = multiprocessing.Queue()
+        processes = []
+        for index in range(5):
+            process = multiprocessing.Process(target=CSPMultiProcessHandler.solver_worker,
+                                              args=(index, copy.deepcopy(puzzle), result_event, results_queue, limit))
+            process.start()
+            processes.append(process)
+        result_event.wait()
+        for process in processes:
+            process.terminate()
+            process.join()
+        if not results_queue.empty():
+            print(time.time() - start)
+            return results_queue.get()
 
 
 class BruteForceSolver(SudokuSolver):
