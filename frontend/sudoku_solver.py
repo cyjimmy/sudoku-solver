@@ -267,12 +267,12 @@ class CSPMultiProcessHandler:
         """
         Function called by each process during multiprocessing. Tries to solve the given puzzle using CSPSolver.
         """
-        print(f"Process {index} started ...")
+        # print(f"Process {index} started ...")
         result = CSPSolver().solve(puzzle, time.time(), limit)
         if result:
             results_queue.put(result)
             result_event.set()
-            print(f"Process {index} found a solution !!!")
+            # print(f"Process {index} found a solution !!!")
             return
         result_event.set()
 
@@ -320,7 +320,7 @@ class BruteForceSolver(SudokuSolver):
             board[row][col] = num
 
             # Recursively call this function to solve the board
-            if self.solve(board, start_time):
+            if self.solve(board, start_time, limit):
                 return board
 
             # Reset the value back to zero is no solution is found
