@@ -1,9 +1,12 @@
+import copy
 import math
+import multiprocessing
 import random
 import time
 from collections import deque, Counter
-
 from sudoku_generator import SudokuGenerator
+
+SOLVE_TIME_LIMIT = 15
 
 
 class Cell:
@@ -14,9 +17,6 @@ class Cell:
 
     def __str__(self):
         return f'({self.row}, {self.col})'
-
-
-SOLVE_TIME_LIMIT = 15
 
 
 class SudokuSolver:
@@ -36,6 +36,7 @@ class CSPSolver(SudokuSolver):
         self._related_cells = {}
         self._assignment = {}
         self._start_time = None
+        self._terminate_time = None
 
     def solve(self, board: list, start_time, limit=SOLVE_TIME_LIMIT):
         """
@@ -45,6 +46,7 @@ class CSPSolver(SudokuSolver):
         """
         self._reset()
         self._start_time = time.time()
+        self._terminate_time = time.time() + limit
         self._board = board
         self._size = len(self._board)
         self._find_empty_cells()
@@ -71,31 +73,28 @@ class CSPSolver(SudokuSolver):
 
     def _get_initial_domains(self):
         """
-        Initial pruning
+        Get initial domain
         - initial assignment of each empty cell's domain
-        - call function _ac_3 to further reduce initial domains
         """
         for cell in self._empty_cells:
             row = cell.row
             col = cell.col
             self._domains[cell] = set(range(1, self._size + 1)) - set(self._board[row]) - \
                                   set([row[col] for row in self._board]) - set(self._get_subgrid(row, col))
-        for cell in self._empty_cells:
-            self._ac_3(cell)
 
     def _fill_cell(self):
         """
         Backtrack search
         - recursive backtracking
         """
-        if time.time() - self._start_time > SOLVE_TIME_LIMIT:
-            return False
         if len(self._empty_cells) == 0:
             return self._board
         cell = self._mrv()
         self._empty_cells.remove(cell)
         original_domains = {cell: domain.copy() for cell, domain in self._domains.items()}
         for value in self._arrange_value(cell):
+            if time.time() > self._terminate_time:
+                return False
             self._assignment[cell] = value
             self._domains[cell] = set()
             if self._ac_3(cell):
@@ -184,6 +183,8 @@ class CSPSolver(SudokuSolver):
             if empty_cell in self._related_cells[cell]:
                 arcs.append((empty_cell, cell))
         while arcs:
+            if time.time() > self._terminate_time:
+                return False
             arc = arcs.popleft()
             cell_i = arc[0]
             cell_j = arc[1]
@@ -260,23 +261,70 @@ class CSPSolver(SudokuSolver):
         self._start_time = None
 
 
+class CSPMultiProcessHandler:
+    @staticmethod
+    def solver_worker(index, puzzle, result_event, results_queue, limit):
+        """
+        Function called by each process during multiprocessing. Tries to solve the given puzzle using CSPSolver.
+        """
+        # print(f"Process {index} started ...")
+        result = CSPSolver().solve(puzzle, time.time(), limit)
+        if result:
+            results_queue.put(result)
+            result_event.set()
+            # print(f"Process {index} found a solution !!!")
+            return
+        result_event.set()
+
+    @staticmethod
+    def process_pool_handler(puzzle, limit):
+        """
+        Function called by each process during multiprocessing. Tries to solve the given puzzle using CSPSolver.
+        """
+        start = time.time()
+        result_event = multiprocessing.Event()
+        results_queue = multiprocessing.Queue()
+        processes = []
+        for index in range(5):
+            process = multiprocessing.Process(target=CSPMultiProcessHandler.solver_worker,
+                                              args=(index, copy.deepcopy(puzzle), result_event, results_queue, limit))
+            process.start()
+            processes.append(process)
+        result_event.wait()
+        for process in processes:
+            process.terminate()
+            process.join()
+        if not results_queue.empty():
+            print(time.time() - start)
+            return results_queue.get()
+
+
 class BruteForceSolver(SudokuSolver):
     def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        # Check the if the current time is past the timeout limit set
         if time.time() - start_time > limit:
             return False
         n = len(board)
+
+        # Find an emtpy cell on the board with the least amount possible values
         empty = self.find_empty(board)
+
+        # If no empty cells are found then board is solved so return.
         if not empty:
             return board
-            # return True
         row, col = empty
+
+        # Go through each possible choice for the cell given from above.
         for num in self.get_choices(board, row, col):
-            if self.is_valid(board, row, col, num):
-                board[row][col] = num
-                if self.solve(board, start_time):
-                    return board
-                    # return True
-                board[row][col] = 0
+            # If value is valid then set it.
+            board[row][col] = num
+
+            # Recursively call this function to solve the board
+            if self.solve(board, start_time, limit):
+                return board
+
+            # Reset the value back to zero is no solution is found
+            board[row][col] = 0
         return False
 
     def fill_naked_single(self, board):
@@ -352,9 +400,8 @@ class BruteForceSolver(SudokuSolver):
 
 def print_board(board):
     for row in board:
-        for num in row:
-            print(num, end=" ")
-        print()
+        list = [str(num) for num in row]
+        print(",".join(list))
 
 
 size_25_puzzle = [[0, 15, 0, 2, 1, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -386,23 +433,24 @@ size_25_puzzle = [[0, 15, 0, 2, 1, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 if __name__ == "__main__":
     solver1 = BruteForceSolver()
     solver2 = CSPSolver()
-    attempts = 100
+    attempts = 1
     for solver in [solver2]:
         success = 0
         total_time = 0
         for n in range(attempts):
-            generator = SudokuGenerator(16)
+            generator = SudokuGenerator(25)
             puzzle = generator.generate()
+            print_board(puzzle)
             current_time = time.time()
-            solution = solver.solve(puzzle, current_time)
-            if solution:
-                time_elapsed = time.time() - current_time
-                total_time += time_elapsed
-                success += 1
-                # print_board(solution)
-                print("Success")
-            else:
-                print("FAIL!!!")
+            # solution = solver.solve(puzzle, current_time)
+            # if solution:
+            #     time_elapsed = time.time() - current_time
+            #     total_time += time_elapsed
+            #     success += 1
+            #     # print_board(solution)
+            #     print("Success")
+            # else:
+            #     print("FAIL!!!")
 
         print(f"Success rate: {success / attempts}")
         if success:

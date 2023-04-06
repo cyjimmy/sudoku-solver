@@ -163,6 +163,7 @@ class Grid:
         """
         with open(filename, "r", encoding="utf-8") as sudoku_grids:
             line = sudoku_grids.readline()
+            print(line)
             if line == "":
                 raise InvalidFileDataException(filename)
             try:
@@ -171,12 +172,15 @@ class Grid:
                 raise InvalidFileDataException(filename)
 
     @staticmethod
-    def get_sides(grid_size):
-        size_sqrt: float = int(sqrt(grid_size))
-        if math.isqrt(grid_size) ** 2 == grid_size:
-            return size_sqrt, size_sqrt
-        else:
-            return int(math.floor(grid_size/2)), int(math.ceil(grid_size/2))
+    def get_sides(size):
+        subgrid_row = math.floor(size ** 0.5)
+        subgrid_col = size // subgrid_row
+        return subgrid_row, subgrid_col
+        # size_sqrt: float = int(sqrt(grid_size))
+        # if math.isqrt(grid_size) ** 2 == grid_size:
+        #     return size_sqrt, size_sqrt
+        # else:
+        #     return int(math.floor(grid_size/2)), int(math.ceil(grid_size/2))
 
     def __load_with_commas(self, file_content: TextIO, first_line: str):
         """
@@ -184,13 +188,13 @@ class Grid:
         :param file_content: TextIO
         :param first_line: str
         """
-        grid_size = len(first_line.strip('\n').replace(',', ''))
+        grid_size = len(first_line.strip('\n').split(','))
         side_first, side_second = self.get_sides(grid_size)
         first_line_values = first_line.strip('\n').split(',')
         self.grid_size = {"blocks": grid_size, "block_rows": side_first, "block_cols": side_second}
         self.puzzle = [[0] * grid_size for _ in range(grid_size)]
         line = file_content.readline()
-        while line != "":
+        while line != "" and not line.isspace():
             first_line_values += line.strip('\n').split(',')
             line = file_content.readline()
         values_index = 0

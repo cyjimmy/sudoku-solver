@@ -1,3 +1,4 @@
+import multiprocessing
 import sys
 import time
 from functools import partial
@@ -14,12 +15,14 @@ import loadedsudokuwindow
 import mainwindow
 import solver
 from grid import Grid, GridSize
-from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver
+from sudoku_solver import BruteForceSolver, SudokuSolver, CSPSolver, CSPMultiProcessHandler
 from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
-TIME_LIMIT = {9: 10, 12: 15, 16: 16, 25: 160}
+
+TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30, 100: 30}
+CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 2, 25: 5, 100: 5}
 
 
 class MainWindow(QtWidgets.QMainWindow, mainwindow.Ui_MainWindow):
@@ -74,7 +77,7 @@ class GeneratePuzzleWindow(QtWidgets.QMainWindow, generatepuzzle.Ui_MainWindow):
             except custom_exceptions.InvalidFileDataException as e:
                 QMessageBox.critical(self, e.__class__.__name__, e.args[0])
             else:
-                print(self.grid.grid_size)
+                # print(self.grid.grid_size)
                 Global_Window_DLL.append(LoadedSudokuWindow(self.grid))
                 node = Global_Window_DLL.get_node(self)
                 node.next.data.show()
@@ -134,8 +137,8 @@ class LoadedSudokuWindow(QtWidgets.QMainWindow, loadedsudokuwindow.Ui_MainWindow
         self.pushButtonCSP.clicked.connect(self.on_click_csp)
         self.brute_threadpool = None
         self.csp_threadpool = None
-        print(self.grid)
-        print(self.grid.puzzle)
+        # print(self.grid)
+        # print(self.grid.puzzle)
 
     def on_click_brute(self):
         if self.grid.grid_size["blocks"] > 25:
@@ -249,16 +252,25 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
             self.labelTime.setText(f"Failed in {round(timer, 6)} sec")
 
     def solve(self):
-        # IF i remove this, UI is janky. It loads fine, but the problem is the thread pool is somehow
-        # # blocking the main thread which I don't even think is possible
         time.sleep(0.5)
 
         self.labelTime.setText("Background Thread In progress....")
+        size = len(self.grid.puzzle)
         start = time.time()
+        limit = TIME_LIMIT[size]
+        if isinstance(self.solver, CSPSolver):
+            limit = CSP_TIME_LIMIT[size]
         for i in range(10):
-            limit = TIME_LIMIT[len(self.grid.puzzle)]
-            result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
-            print("Finished Try", i)
+            if i == 9 and isinstance(self.solver, CSPSolver):
+                limit = 60
+            if isinstance(self.solver, CSPSolver) and size > 16:
+                if i > 1:
+                    limit = 60
+                result = CSPMultiProcessHandler().process_pool_handler(self.grid.puzzle, limit)
+                print(time.time() - start)
+            else:
+                result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
+            print("Finished Try", i, "with time limit", limit)
             if result:
                 break
         end = time.time() - start
@@ -296,5 +308,6 @@ class Driver:
 
         self.app.exec()
 
-if __name__=="__main__":
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
     d = Driver()
