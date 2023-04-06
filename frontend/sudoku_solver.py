@@ -4,7 +4,7 @@ import multiprocessing
 import random
 import time
 from collections import deque, Counter
-from frontend.sudoku_generator import SudokuGenerator
+from sudoku_generator import SudokuGenerator
 
 SOLVE_TIME_LIMIT = 15
 

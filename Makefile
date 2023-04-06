@@ -23,12 +23,19 @@ GIT_LOCAL     := $(call shell_variable, git)
 PYTHON3_LOCAL := $(call shell_variable, python3)
 VENV          := $(call shell_variable, virtualenv)
 PIP3_LOCAL    := $(call shell_variable, pip3)
+ifeq ($(call shell_variable, conda),)
+CONDA_LOCAL   := ~/anaconda3/bin/conda
+else
 CONDA_LOCAL   := $(call shell_variable, conda)
+endif
+
 
 # venv executables
+
 PYTHON3 	   := ~/anaconda3/envs/${VENV_NAME}/bin/python3
 PIP3    	   := ~/anaconda3/envs/${VENV_NAME}/bin/pip3
 PYSIDE6_UIC    := ~/anaconda3/envs/${VENV_NAME}/bin/pyside6-uic
+PYINSTALLER    := ~/anaconda3/envs/${VENV_NAME}/bin/pyinstaller
 PIP3_notConda  := ./${VENV_NAME}/bin/pip3
 #----------------
 
@@ -76,9 +83,15 @@ prep-conda-virtual-environment:
 	${CONDA_LOCAL} env list | grep "${VENV_NAME}"
 	${PIP3} install -r ${BASE_DIR}/requirements.txt
 
-app:
+build-dist: clean-build
+	@$(call info_logger, Generating Build...)
+	cd ${BASE_DIR}/frontend && \
+	${PYINSTALLER} driver.py
+
+app: prep-conda-virtual-environment
 	@$(call info_logger, Starting up the app)
-	${PYTHON3} app.py
+	cd ${BASE_DIR}/frontend && \
+	${PYTHON3} driver.py
 
 # cleanup
 clean-virtualenv: garbage := "~/anaconda3/envs/${VENV_NAME}"
@@ -90,6 +103,11 @@ clean-virtualenv:
 clean-logs: garbage := "${BASE_DIR}/logs"
 clean-logs:
 	@$(call info_logger, Cleaning logs)
+	@$(call garbage_collector, ${garbage})
+
+clean-build: garbage := "${BASE_DIR}/frontend/build" "${BASE_DIR}/frontend/dist" "${BASE_DIR}/frontend/driver.spec"
+clean-build:
+	@$(call info_logger, Cleaning frontend build)
 	@$(call garbage_collector, ${garbage})
 
 # git
