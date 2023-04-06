@@ -9,6 +9,15 @@ pip install -r requirements.txt
 ```
 3. Run the /frontend/driver.py file
 
+### Puzzle Generation
+1. Script-based random generation (for puzzles 12x12 or less)
+   1. Generate random values for the diagonal
+   2. Fill in the rest (up to 25%) using the brute force algorithm
+2. File-based random generation (for puzzles 16x16 or more)
+   1. Pick a random solved puzzle with the desired size
+   2. Remove the values randomly until 75% of cells is empty
+3. Loading a file containing a puzzle
+
 ## Sudoku Solving Algorithms
 #### Algorithm File Location
 ```buildoutcfg
