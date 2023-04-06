@@ -20,6 +20,7 @@ from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
+
 TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30, 100: 30}
 CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 3, 100: 3}
 
@@ -259,7 +260,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         limit = TIME_LIMIT[size]
         if isinstance(self.solver, CSPSolver):
             limit = CSP_TIME_LIMIT[size]
-        for i in range(10):
+        for i in range(15):
             if isinstance(self.solver, CSPSolver) and size > 16:
                 limit = limit + i
                 if i == 9:
