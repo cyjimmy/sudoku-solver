@@ -8,6 +8,7 @@ resource "aws_instance" "linux_instance" {
   iam_instance_profile        = aws_iam_instance_profile.ecs_agent.name
   vpc_security_group_ids      = [aws_security_group.sg[0].id]
   associate_public_ip_address = true
+#  instance_type               = "t2.micro"
   instance_type               = "c4.8xlarge"
   subnet_id                   = aws_subnet.public[0].id
   key_name                    = aws_key_pair.ssh_key.key_name
@@ -48,10 +49,7 @@ resource "null_resource" "install-linux-tools" {
       "sudo aws ecr get-login-password --region us-east-1 | sudo docker login --username AWS --password-stdin 598490276344.dkr.ecr.us-east-1.amazonaws.com",
       "sudo systemctl enable docker",
       "sudo systemctl start docker",
-      "sudo docker pull 598490276344.dkr.ecr.us-east-1.amazonaws.com/sudoku-solver:latest",
-      "xhost",
-      "xhost +local:docker",
-      "sudo docker run -i -t -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw 598490276344.dkr.ecr.us-east-1.amazonaws.com/sudoku-solver:latest"
+      "sudo docker pull 598490276344.dkr.ecr.us-east-1.amazonaws.com/sudoku-solver:latest"
     ]
   }
 }
