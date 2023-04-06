@@ -261,11 +261,11 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         if isinstance(self.solver, CSPSolver):
             limit = CSP_TIME_LIMIT[size]
         for i in range(10):
-            if isinstance(self.solver, CSPSolver) and size > 12:
-                if i > 1 and size == 25:
-                    limit = 30
-                if i > 4 and size == 16:
-                    limit = 20
+            if i == 9 and isinstance(self.solver, CSPSolver):
+                limit = 60
+            if isinstance(self.solver, CSPSolver) and size > 16:
+                if i > 1:
+                    limit = 60
                 result = CSPMultiProcessHandler().process_pool_handler(self.grid.puzzle, limit)
                 print(time.time() - start)
             else:
