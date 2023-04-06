@@ -21,7 +21,7 @@ from worker import Worker
 
 Global_Window_DLL = dll.DoublyLinkedList()
 
-TIME_LIMIT = {9: 5, 12: 15, 16: 16, 25: 30}
+TIME_LIMIT = {9: 5, 12: 10, 16: 16, 25: 45}
 CSP_TIME_LIMIT = {9: 1, 12: 1, 16: 1, 25: 10}
 
 
@@ -261,7 +261,7 @@ class SolverWindow(QtWidgets.QMainWindow, solver.Ui_MainWindow):
         limit = TIME_LIMIT[len(self.grid.puzzle)]
         if isinstance(self.solver, CSPSolver):
             limit = CSP_TIME_LIMIT[len(self.grid.puzzle)]
-        for i in range(10):
+        for i in range(15):
             result = self.solver.solve(self.grid.puzzle, time.time(), limit=limit)
             print("Finished Try", i, "with time limit", limit)
             if result:
