@@ -307,6 +307,13 @@ class CSPMultiProcessHandler:
 
 class BruteForceSolver(SudokuSolver):
     def solve(self, board, start_time, limit=SOLVE_TIME_LIMIT):
+        """
+        This is the main function that gets called recursively to solve the board.
+        :param board: 2d array representation of the board.
+        :param start_time: initial start time
+        :param limit: time limit for solve
+        :return:
+        """
         # Check the if the current time is past the timeout limit set
         if time.time() - start_time > limit:
             return False
@@ -333,20 +340,12 @@ class BruteForceSolver(SudokuSolver):
             board[row][col] = 0
         return False
 
-    def fill_naked_single(self, board):
-        changed = False
-        for row in range(len(board)):
-            for col in range(len(board[0])):
-                if board[row][col] == 0:
-                    choices = self.get_choices(board, row, col)
-                    print(choices)
-                    if len(choices) == 1:
-                        board[row][col] = choices[0]
-                        changed = True
-                        print(row, col, choices)
-        return changed
-
     def find_empty(self, board):
+        """
+        Find the emtpy cell with the smallest domain and return its position.
+        :param board: 2d array of the board.
+        :return:
+        """
         n = len(board)
         min_choices = n + 1
         min_row, min_col = None, None
@@ -365,6 +364,13 @@ class BruteForceSolver(SudokuSolver):
         return min_row, min_col
 
     def get_choices(self, board, row, col):
+        """
+        Return all possible values for the given cell position.
+        :param board: 2d array of the board
+        :param row: index
+        :param col: index
+        :return:
+        """
         n = len(board)
         choices = set(range(1, n + 1)) - set(self.get_row(board, row)) - set(self.get_col(board, col)) - set(
             self.get_subgrid(board, row, col))
@@ -373,9 +379,21 @@ class BruteForceSolver(SudokuSolver):
         return choices
 
     def get_row(self, board, row):
+        """
+        Return the whole row of the board
+        :param board: 2d array of the board
+        :param row: index
+        :return:
+        """
         return board[row]
 
     def get_col(self, board, col):
+        """
+        Return the whole column of the board
+        :param board: 2d array of the board
+        :param col: index
+        :return:
+        """
         return [board[row][col] for row in range(len(board))]
 
     def is_valid(self, board, row, col, num):
@@ -395,6 +413,13 @@ class BruteForceSolver(SudokuSolver):
         return True
 
     def get_subgrid(self, board, row, col):
+        """
+        Return a subgrid of the board given the cell position.
+        :param board: 2d array of the board
+        :param row: index
+        :param col: index
+        :return:
+        """
         size = len(board)
         subgrid_row = math.floor(size ** 0.5)
         subgrid_col = size // subgrid_row
