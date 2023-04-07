@@ -103,7 +103,7 @@ After some benchmarking, we found out only size 25 or above will be improved usi
 | 9x9   | 0.06772525             |0.19890018 | 15/15|
 | 12x12 | 3.5306933           |6.14235701 | 15/15|
 | 16x16 | 19.2738021           |20.8148636 | 15/15|
-| 25x25 | 144.814612           |67.8336156 | 7/15|
+| 25x25 | 144.814612           |67.8336156 | 6/15|
 
 #### CSP
 |       | Average time (seconds) | Standard deviation | Success |
