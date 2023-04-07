@@ -15,14 +15,19 @@ class SudokuGenerator:
 
     def generate(self):
         if self._size <= 12:
+            # Dynamic puzzle generation
             self._fill_diagonal_block()
             self._fill_cell(0, 0)
         else:
+            # File based generation
             self._generate_from_file()
         self._remove_cell_values()
         return self._board
 
     def _fill_diagonal_block(self):
+        """
+        Grid on diagonal does not affect others, we can fill these grid first.
+        """
         diagonal_block_count = self._size // self._block_cols
         for block in range(diagonal_block_count):
             start_row = block * self._block_rows
@@ -34,6 +39,9 @@ class SudokuGenerator:
                     self._board[row][col] = values.pop(0)
 
     def _fill_cell(self, row, col):
+        """
+        Backtracking search to fill empty cells
+        """
         if col == self._size:
             row += 1
             col = 0
