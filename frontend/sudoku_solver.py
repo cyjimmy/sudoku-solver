@@ -301,7 +301,7 @@ class CSPMultiProcessHandler:
             process.terminate()
             process.join()
         if not results_queue.empty():
-            print(time.time() - start)
+            # print(time.time() - start)
             return results_queue.get()
 
 
@@ -438,8 +438,9 @@ def print_board(board):
 if __name__ == "__main__":
     solver1 = BruteForceSolver()
     solver2 = CSPSolver()
-    attempts = 10
+    attempts = 5
     size = 25
+    print("Running command line demo, solving size", size, "puzzle with", attempts, "attempts.")
     for solver in [solver2]:
         success = 0
         total_time = 0
@@ -455,8 +456,8 @@ if __name__ == "__main__":
                 time_elapsed = time.time() - current_time
                 total_time += time_elapsed
                 success += 1
+                print("\nSuccess")
                 print_board(solution)
-                print("Success")
             else:
                 print("FAIL!!!")
 
