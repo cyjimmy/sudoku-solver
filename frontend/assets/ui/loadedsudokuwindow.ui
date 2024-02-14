@@ -92,7 +92,7 @@
            <enum>Qt::LeftToRight</enum>
           </property>
           <property name="text">
-           <string>Clear</string>
+           <string>Back</string>
           </property>
           <property name="icon">
            <iconset theme="go-previous">

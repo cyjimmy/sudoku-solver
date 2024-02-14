@@ -126,7 +126,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Loaded Sudoku Puzzle", None))
         self.pushButtonBrute.setText(QCoreApplication.translate("MainWindow", u"Solve (Brute/Heuristic)", None))
         self.pushButtonCSP.setText(QCoreApplication.translate("MainWindow", u"Solve (CSP)", None))
-        self.pushButtonBack.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
+        self.pushButtonBack.setText(QCoreApplication.translate("MainWindow", u"Back", None))
         self.pushButtonExit.setText(QCoreApplication.translate("MainWindow", u"EXIT", None))
     # retranslateUi
 
