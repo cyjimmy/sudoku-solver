@@ -7,7 +7,7 @@ Solve sudoku using some algorithms (ง︡'-'︠)ง
 ```buildoutcfg
 pip install -r requirements.txt
 ```
-3. Run the /frontend/driver.py file
+3. Run the /app/driver.py file
 
 ### Puzzle Generation
 1. Script-based random generation (for puzzles 12x12 or less)
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ## Sudoku Solving Algorithms
 #### Algorithm File Location
 ```buildoutcfg
-/frontend/sudoku_solver.py
+/app/sudoku_solver.py
 ```
 ### Brute Force
 1. The algorithm will try and find a cell with the least amount of possible options.
@@ -112,15 +112,3 @@ After some benchmarking, we found out only size 25 or above will be improved usi
 | 12x12 | 0.0349           |0.0117 | 15/15   |
 | 16x16 | 0.5071          |1.2454 | 15/15   |
 | 25x25 | 13.7136           |25.4175 | 14/15   |
-
-#### CSP on AWS
-|       | Average time (seconds) | Standard deviation | Success |
-|-------|------------------------|--------------------|---------|
-| 16x16 | 0.4029522          |0.18766359| 15/15   |
-| 25x25 | 4.398898        |3.885618| 14/15   |
-
-Note: There is only one size 25 puzzle our CSP cannot solve either locally or on AWS. There is a chance the puzzle is not solvable.
-
-
-### AWS Infrastructure Overview
-![alt text](https://github.com/Miniature-Pug/comp3981_sudoku_project/blob/main/aws_infrastructure.png?raw=true)
