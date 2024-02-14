@@ -77,9 +77,9 @@ class SudokuGenerator:
         return True
 
     def _generate_from_file(self):
-        random_file = random.choice(os.listdir(self.SUDOKU_FOLDER))
-        random_file_path = os.path.join(self.SUDOKU_FOLDER, random_file)
-        with open(random_file_path) as input_file:
+        file_number = random.choice([1, 2, 3])
+        file = os.path.join(self.SUDOKU_FOLDER, f"{self._size}-{file_number}.txt")
+        with open(file) as input_file:
             rows = input_file.readlines()
             for index, row in enumerate(rows):
                 self._board[index] = [int(value) for value in row.split()]
