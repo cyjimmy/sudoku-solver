@@ -1,9 +1,11 @@
 import math
 import random
+import os
 
 
 class SudokuGenerator:
-    SUDOKU_FOLDER = "./sudoku_files/"
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    SUDOKU_FOLDER = os.path.join(CURRENT_DIR, "sudoku_files", "files_for_generation")
 
     def __init__(self, size):
         self._size = size
@@ -75,9 +77,9 @@ class SudokuGenerator:
         return True
 
     def _generate_from_file(self):
-        file_number = random.choice([1, 2, 3])
-        file = f'{self.SUDOKU_FOLDER}{self._size}-{file_number}.txt'
-        with open(file) as input_file:
+        random_file = random.choice(os.listdir(self.SUDOKU_FOLDER))
+        random_file_path = os.path.join(self.SUDOKU_FOLDER, random_file)
+        with open(random_file_path) as input_file:
             rows = input_file.readlines()
             for index, row in enumerate(rows):
                 self._board[index] = [int(value) for value in row.split()]
