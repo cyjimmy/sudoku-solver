@@ -7,7 +7,7 @@ Solve sudoku using some algorithms (ง︡'-'︠)ง
 ```buildoutcfg
 pip install -r requirements.txt
 ```
-3. Run the /app/driver.py file
+3. Run the /frontend/driver.py file
 
 ### Puzzle Generation
 1. Script-based random generation (for puzzles 12x12 or less)
@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ## Sudoku Solving Algorithms
 #### Algorithm File Location
 ```buildoutcfg
-/app/sudoku_solver.py
+/frontend/sudoku_solver.py
 ```
 ### Brute Force
 1. The algorithm will try and find a cell with the least amount of possible options.
