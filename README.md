@@ -1,5 +1,5 @@
 # Sudoku Solver
-Solve sudoku using some algorithms (ง︡'-'︠)ง
+Solve large sudoku puzzles using backtracking algorithms, csp heuristics and multiprocessing.
 
 ## How To Run
 1. Install Python version 3.10
