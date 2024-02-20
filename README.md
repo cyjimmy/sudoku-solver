@@ -1,4 +1,4 @@
-# COMP3981 Sudoku Solver
+# Sudoku Solver
 Solve sudoku using some algorithms (ง︡'-'︠)ง
 
 ## How To Run
